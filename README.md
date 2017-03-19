@@ -414,70 +414,55 @@ an existing state when producing a new state and (iii) a set of tuples to delete
 from an existing state.
 
 To apply this kind of operator specification we extract patterns from the 
-operator then use mfind*
+operator then use `mfind*`
 
 ```clojure
 (defn apply-op
   [state {:keys [pre add del]}]
   (mfind* [pre state]
     (union (mout add)
-      (difference state (mout del))
-      )))
+      (difference state (mout del)))))
 
- (apply-op state1 ('pickup ops))
+(apply-op state1 ('pickup ops))
+ 
 ; →  #{(agent R) (holds R book)
 ;      (manipulable book)
 ;      (path table bench) (at R table)}
 ```
 
-The patterns used by mfind* are provided dynamically when apply-op is called and 
+The patterns used by `mfind*` are provided dynamically when `apply-op` is called and 
 furthermore the patterns themselves define the semantics of the operators.
 
 Collections of operators are conveniently held in a map, and ordered sequences 
-of operator applications can be formed by chaining apply-op calls, eg:
+of operator applications can be formed by chaining `apply-op` calls, eg:
 
 ```clojure
 (def ops
   '{pickup {:pre ((agent ?agent)
                   (manipulable ?obj)
                   (at ?agent ?place)
-                  (on ?obj   ?place)
-                  (holds ?agent nil)
-                  )
-
-            :add ((holds ?agent ?obj))
-
-            :del ((on ?obj   ?place)
+                  (on ?obj ?place)
                   (holds ?agent nil))
-            }
+            :add ((holds ?agent ?obj))
+            :del ((on ?obj   ?place)
+                  (holds ?agent nil))}
 
-    drop    {:pre ((at ?agent ?place)
-                   (holds ?agent ?obj)
-                   )
+    drop {:pre ((at ?agent ?place)
+                (holds ?agent ?obj))
+          :add ((holds ?agent nil)
+                (on ?obj ?place))
+          :del ((holds ?agent ?obj))}
 
-             :add ((holds ?agent nil)
-                   (on ?obj   ?place))
-
-             :del ((holds ?agent ?obj))
-             }
-
-    move    {:pre ((agent ?agent)
-                   (at ?agent ?p1)
-                   (path ?p1 ?p2)
-                   )
-
-             :add ((at ?agent ?p2))
-
-             :del ((at ?agent ?p1))
-
-             }
-
-    })
+    move {:pre ((agent ?agent) 
+                (at ?agent ?p1)
+                (path ?p1 ?p2))
+          :add ((at ?agent ?p2))
+          :del ((at ?agent ?p1))}})
 
 (-> state1
   (apply-op ('pickup ops))
-  (apply-op ('move   ops))
-  (apply-op ('drop   ops)))
+  (apply-op ('move ops))
+  (apply-op ('drop ops)))
 
 ; → #{(agent R) (manipulable book)
 ;     (on book bench) (holds R nil)
