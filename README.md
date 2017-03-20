@@ -9,11 +9,11 @@ more details refer to the user guide.
 
 ## Contents
 
-* [Getting Started](#getting_started)
-* [Applying Rules](#applying_rules)
-* [Applying State-Changing Operators](#applying_state)
+* [Getting Started](#getting-started)
+* [Applying Rules](#applying-rules)
+* [Applying State-Changing Operators](#applying-state-changing-operators)
 
-## <a name="getting_started"></a>A Brief Tutorial
+## Getting Started
 
 The most primitive form of matcher expression provided for general use is `mlet`
 (matcher-let), it is structured as follows:
@@ -210,7 +210,7 @@ The matcher supports two forms to provide iteration and collection capability, t
 ; → (chilli radish)
 ```
 
-## <a name="applying_rules"></a>Applying Rules
+## Applying Rules
 
 This example considers a rule-based, fact deduction or forward chaining 
 mechanism. Facts are held as tuples and rules have antecedents and consequents. 
@@ -361,7 +361,7 @@ collate results, etc.
       )))
 ```
 
-## <a name="applying_state"></a>Applying State-Changing Operators
+## Applying State-Changing Operators
 
 In this example we consider how to apply the kind of state changing operators 
 that are used in some planning systems. Broadly we adapt a representation 
