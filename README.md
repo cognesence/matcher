@@ -266,7 +266,7 @@ A suitable rule application mechanism needs to split the rule into its constitue
 ;    (grandparent Rob Sam))
 ```
 
-Notice that while the pattern for defmatch is literally specified, the patterns 
+Notice that while the pattern for `defmatch` is literally specified, the patterns 
 for `mfor*` and `mout` must, necessarily, be generated dynamically. Furthermore 
 these dynamically generated patterns are embedded in the rule structure pulled 
 apart by the literal pattern in `defmatch`.
