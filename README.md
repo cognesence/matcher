@@ -11,29 +11,29 @@ more details refer to the user guide.
 
 * [Getting Started](#getting_started)
 * [Applying Rules](#applying_rules)
-* [applying state changing operators](#_example:_applying_state)
+* [Applying State-Changing Operators](#applying_state)
 
-## <a name="getting_started">a brief tutorial</a>
+## <a name="getting_started"></a>A Brief Tutorial
 
 The most primitive form of matcher expression provided for general use is `mlet`
 (matcher-let), it is structured as follows:
 
 ```clojure
 (mlet [ pattern datum ]
-  ; ...body...
+  ; body
   )
 ```
 
 `mlet` operates as follows: if the pattern matches the `datum`, binding any 
-matcher variables as part of the matching process then mlet evaluates its body 
-in the context of these bindings. If the pattern and datum do not match, `mlet` 
-returns nil.
+matcher variables as part of the matching process then `mlet` evaluates its body 
+in the context of these bindings. If the `pattern` and `datum` do not match, 
+`mlet` returns `nil`.
 
-Match variables are prefixed with a "?" (or "??" – see later), in the following 
-example, the pattern (?x ?y ?z) matches the datum (cat dog bat) binding match 
-variables "x", "y", "z" to 'cat, 'dog, 'bat respectively and the expression 
-(? y) in the body of mlet retrieves the value of the match variable "y" from 
-matcher name space.
+Match variables are prefixed with a `?` (or `??` – see later), in the following 
+example, the pattern `(?x ?y ?z)` matches the datum `(cat dog bat)` binding match 
+variables `x`, `y`, `z` to `'cat`, `'dog`, `'bat` respectively and the expression 
+`(? y)` in the body of `mlet` retrieves the value of the match variable `y` from 
+matcher namespace.
 
 ```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat)]
@@ -61,9 +61,9 @@ mixture of literals and bound match variables:
 ; → nil
 ```
 
-In addition to _single element match directives_ (prefixed with "?") the matcher 
+In addition to _single element match directives_ (prefixed with `?`) the matcher 
 supports _multiple match directives_ which match against zero or more elements 
-of data (these are prefixed with "??"). Multiple directives may also be used in 
+of data (these are prefixed with `??`). Multiple directives may also be used in 
 matcher-out expressions, in which case their value is appended into the 
 resulting structure:
 
@@ -87,26 +87,24 @@ used to specify a series of pattern based rules as follows:
 
 ```clojure
 (mcond [exp]
-    ((?x plus ?y)  (+ (? x) (? y)))
-    ((?x minus ?y) (- (? x) (? y)))
-    )
+  ((?x plus ?y)  (+ (? x) (? y)))
+  ((?x minus ?y) (- (? x) (? y))))
 ```
 
-The `mcond` form will attempt to match the data it is given (the value of _exp_ 
-in the example above) to the first pattern in its sequence of rules (?x plus ?y) 
-then its second (?x minus ?y) until it finds a rule which matches, it then 
+The `mcond` form will attempt to match the data it is given (the value of `exp`
+in the example above) to the first pattern in its sequence of rules `(?x plus ?y)`
+then its second `(?x minus ?y)` until it finds a rule which matches, it then 
 evaluates the body of that rule and returns the result. As with other matcher 
-forms, mcond returns nil if it fails to find a match.  The mcond form above will 
-return 9 if exp has a value of (5 plus 4) or 1 if exp has a value of 
-(5 minus 4). Note that mcond (and other forms) can optionally use additional 
+forms, `mcond` returns `nil` if it fails to find a match.  The `mcond` form above will 
+return `9` if `exp` has a value of `(5 plus 4)` or `1` if `exp` has a value of 
+`(5 minus 4)`. Note that `mcond` (and other forms) can optionally use additional 
 symbols to make their rule-based structure more explicit, we recommend using 
-“:=>” for example:
+`:=>` for example:
 
 ```clojure
 (mcond [exp]
-    ((?x plus ?y)  :=> (+ (? x) (? y)))
-    ((?x minus ?y) :=> (- (? x) (? y)))
-    )
+  ((?x plus ?y) :=> (+ (? x) (? y)))
+  ((?x minus ?y) :=> (- (? x) (? y))))
 ```
 
 `defmatch` is similar in structure to `mcond`, wrapping an implicit `mcond` form 
@@ -131,10 +129,9 @@ an anonymous match variable to handle default cases:
 
 ```clojure
 (defmatch math2 [x]
-  ((add ?y)  :=> (+ x (? y)))
+  ((add ?y) :=> (+ x (? y)))
   ((subt ?y) :=> (- x (? y)))
-  ( ?_       :=> x)
-  )
+  (?_ :=> x))
 
 (math2 '(add 7) 12) ; → 19
 
@@ -143,46 +140,44 @@ an anonymous match variable to handle default cases:
 (math2 '(times 7) 12) ; → 12
 ```
 
-Due to the way patterns may be specified at the symbol level, defmatch forms can 
+Due to the way patterns may be specified at the symbol level, `defmatch` forms can 
 be used to specialise on keywords and thereby resemble some kind of dispatch, 
-eg:
+for example:
 
 ```clojure
 (defmatch calcd [x y]
   (:add  :=> (+ x y))
   (:subt :=> (- x y))
-  (:mult :=> (* x y))
-  )
+  (:mult :=> (* x y)))
 
 (calcd :add 5 4) ; → 9
 
 (calcd :mult 5 4) ; → 20
 ```
 
-### searching and selection
+### Searching and Selection
 
 The searching and selection forms match patterns across collections of data, 
-returning the first match which is found. These matcher forms are called mfind 
-(which matches one pattern across a collection of data) and mfind* (which 
+returning the first match which is found. These matcher forms are called `mfind`
+(which matches one pattern across a collection of data) and `mfind*` (which 
 consistently matches a group of patterns across a collection of data). The next 
 two examples use the following data:
 
 ```clojure
 (def food
- '([isa cherry  fruit]   [isa cabbage veg]
-   [isa chilli  veg]     [isa apple   fruit]
-   [isa radish veg]      [isa leek    veg]
-   [color leek  green]   [color chilli  red]
-   [color apple green]   [color cherry  red]
-   [color cabbage green] [color radish red]
-  ))
+ '([isa cherry fruit] [isa cabbage veg]
+   [isa chilli veg] [isa apple fruit]
+   [isa radish veg] [isa leek veg]
+   [color leek green] [color chilli red]
+   [color apple green] [color cherry red]
+   [color cabbage green] [color radish red]))
 ```
 
 Note that in this example we use vectors in our data, this is perhaps idiomatic 
 but we sometimes prefer wrapping tuples as vectors (rather than as lists) and 
 the matcher deals with either vectors or lists (or maps).
 
-mfind takes one pattern:
+`mfind` takes one pattern:
 
 ```clojure
 (mfind ['[isa ?f veg] food] (? f))
@@ -190,7 +185,7 @@ mfind takes one pattern:
 ; → cabbage
 ```
 
-mfind* takes multiple patterns:
+`mfind*` takes multiple patterns:
 
 ```clojure
 (mfind* ['([isa ?f veg] [color ?f red])
@@ -202,21 +197,20 @@ mfind* takes multiple patterns:
 
 ### Iteration and Collection
 
-The matcher supports two forms to provide iteration and collection capability, these are called mfor and mfor*. They iterate over sets of data using one pattern (mfor) or multiple patterns (mfor*). The following examples use the food data presented above:
+The matcher supports two forms to provide iteration and collection capability, these are called `mfor` and `mfor*`. They iterate over sets of data using one pattern (`mfor`) or multiple patterns (`mfor*`). The following examples use the food data presented above:
 
 ```clojure
 (mfor ['[isa ?f veg] food] (? f))
 
 ; → (cabbage chilli radish leek)
 
-(mfor* ['([isa ?f veg] [color ?f red])
-        food]
-    (? f))
+(mfor* ['([isa ?f veg] [color ?f red]) food]
+  (? f))
 
 ; → (chilli radish)
 ```
 
-## <a name="applying_rules">Applying Rules</a>
+## <a name="applying_rules"></a>Applying Rules
 
 This example considers a rule-based, fact deduction or forward chaining 
 mechanism. Facts are held as tuples and rules have antecedents and consequents. 
@@ -228,7 +222,7 @@ IF (has fido hair) THEN (isa fido mammal)
 ```
 
 While these serve to illustrate their discussion of rule-based inference, rules
-like this are of limited use because they are specific to object names ("fido" 
+like this are of limited use because they are specific to object names (`fido`
 in this case) and take only a single antecedent and consequent. For practical 
 purposes rules need to be flexible about the length of their 
 antecedents/consequents and allow both to include variables. For our work we 
@@ -251,7 +245,7 @@ Which would work on data like:
     (parent Rob Sally)))
 ```
 
-A suitable rule application mechanism needs to split the rule into its constituent parts; search for all consistent sets of antecedents; ripple any antecedent variable bindings through to consequents and collect evaluated consequents for each rule every time it fires. In practice these requirements can be by using a match function to pull a rule apart, mfor* to satisfy all possible antecedent combinations and mout to bind variables into consequents. This can be specified as follows...
+A suitable rule application mechanism needs to split the rule into its constituent parts; search for all consistent sets of antecedents; ripple any antecedent variable bindings through to consequents and collect evaluated consequents for each rule every time it fires. In practice these requirements can be by using a match function to pull a rule apart, `mfor*` to satisfy all possible antecedent combinations and mout to bind variables into consequents. This can be specified as follows...
 
 ```clojure
 (defmatch apply-rule [facts]
@@ -270,9 +264,9 @@ A suitable rule application mechanism needs to split the rule into its constitue
 ```
 
 Notice that while the pattern for defmatch is literally specified, the patterns 
-for mfor* and mout must, necessarily, be generated dynamically. Furthermore 
+for `mfor*` and `mout` must, necessarily, be generated dynamically. Furthermore 
 these dynamically generated patterns are embedded in the rule structure pulled 
-apart by defmatch's literal pattern.
+apart by the literal pattern in `defmatch`.
 
 To investigate this rule deduction example further we use a richer set of facts 
 and rules (where the consequences of some rules trigger the antecedents of 
@@ -310,7 +304,7 @@ once:
 ```
 
 For simplicity in combining the output of rules we use sets so modify the 
-apply-all function a little:
+`apply-all` function a little:
 
 ```clojure
 (defn apply-all [rules facts]
@@ -344,7 +338,7 @@ operate while it is generating new facts:
 ```
 
 As with the other examples, the matcher performs most of the processing (in this 
-case using a defmatch construct and mfor* in apply-rule) while other functions 
+case using a `defmatch` construct and `mfor*` in `apply-rule`) while other functions 
 collate results, etc.
 
 ```clojure
@@ -374,7 +368,7 @@ that are used in some planning systems. Broadly we adapt a representation
 borrowed from PDDL for use with a STRIPS style solver. The operators are 
 specified in terms of their preconditions and their effects. We use tuples to 
 capture state information. The following tuples, for example, describe a simple 
-state in which some (animated) agent (R) is at a table is holding nothing and a 
+state in which some (animated) agent `R` is at a table is holding nothing and a 
 book is on the table.
 
 ```clojure
@@ -408,13 +402,14 @@ described as follows:
    }
 ```
 
-The operator is map with three components (i) a set of preconditions which must 
-be satisfied in order for the operator to be used (ii) a set of tuples to add to 
-an existing state when producing a new state and (iii) a set of tuples to delete 
-from an existing state.
+The operator is map with three components:
+
+  * a set of preconditions which must be satisfied in order for the operator to be used
+  * a set of tuples to add to an existing state when producing a new state 
+  * a set of tuples to delete from an existing state
 
 To apply this kind of operator specification we extract patterns from the 
-operator then use `mfind*`
+operator then use `mfind*`:
 
 ```clojure
 (defn apply-op
