@@ -10,6 +10,9 @@ more details refer to the user guide.
 ## Contents
 
 * [Getting Started](#getting-started)
+  + [Switching and Specialisation](#switching-and-specialisation)
+  + [Searching and Selection](#searching-and-selection)
+  + [Iteration and Collection](#iteration-and-collection)
 * [Applying Rules](#applying-rules)
 * [Applying State-Changing Operators](#applying-state-changing-operators)
 
