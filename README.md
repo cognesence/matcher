@@ -466,3 +466,10 @@ of operator applications can be formed by chaining `apply-op` calls, eg:
 ;     (on book bench) (holds R nil)
 ;     (at R bench) (path table bench)}
 ```
+
+## License
+
+Copyright © 2017 Simon Lynch
+
+Distributed under the Eclipse Public License either version 1.0 or (at
+your option) any later version.

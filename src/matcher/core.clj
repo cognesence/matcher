@@ -1,13 +1,6 @@
-
-; matcher
-;===============================
-; v(0.0l)
-
-(ns ^{:doc "A Symbolic Pattern Matcher"
-      :author "SCL"}
-  cgsx.tools.matcher)
-
-
+(ns ^{:doc "A fully-featured symbolic pattern matcher for Clojure."
+     :author "Simon Lynch"}
+ matcher.core)
 
 ;--------------------------------------
 ; globals, etc
