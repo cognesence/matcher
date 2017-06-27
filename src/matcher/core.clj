@@ -1,6 +1,6 @@
 (ns ^{:doc "A fully-featured symbolic pattern matcher for Clojure."
      :author "Simon Lynch"}
- matcher.core)
+ org.clojars.cognesence.matcher.core)
 
 ;--------------------------------------
 ; globals, etc
