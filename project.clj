@@ -1,4 +1,4 @@
-(defproject org.clojars.cognesence/matcher "1.0.0"
+(defproject org.clojars.cognesence/matcher "1.0.1"
   :description "A fully-featured symbolic pattern matcher for Clojure."
   :url "https://github.com/cognesence/matcher"
   :license {:name "Eclipse Public License"
