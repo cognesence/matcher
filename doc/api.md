@@ -14,7 +14,7 @@
 
 + [General Principles](#general-principles)
     - [Patterns](#patterns)
-    - [Matcher Variables](#matcher-variables)
+    - [Match Variables `?` and Multiple Match Directives `??`](#matcher-variables)
     - [The Semantics of `?`](#the-semantics-of-)
     - [Being Explicit with `:=>`](#being-explicit-with-)
 + [Binding](#binding)
@@ -237,7 +237,7 @@ data presented above:
 Patterns can contain symbols and matcher variables and nested structures made up from lists, vectors and maps. Nesting 
 can be to any depth.
 
-### Matcher Variables
+### Match Variables `?` and Multiple Match Directives `??`
 
 Within patterns, matcher variables are prefixed by single or double question marks (`?` or `??`). Match variables 
 prefixed by single element match directives (`?`) match with one element of data, multiple match directives match 
