@@ -36,7 +36,7 @@
     - [`mfor` and `mfor*`](#mfor-and-mfor)
 + [Advanced Features](#advanced-features)
     - [Predicates in Patterns](#predicates-in-patterns)
-    - :not and :guard
+    - [`:not` and `:guard`](#not-and-guard)
 + Examples
     - Searching Sets of Tuples
     - Applying Rules
@@ -692,7 +692,7 @@ When predicates fail so does the matching:
 ; nil
 ```
 
-You can use multiple predicates as follows...
+You can use multiple predicates as follows:
 
 ```clojure
 (mlet ['(??pre (-> ?x number? odd?) ??post) '(a b 5 c d e)]
@@ -713,8 +713,8 @@ Note that predicates allow values to be changed as they are matched. Predicates 
 
 Then:
 
-```clojure
-if p(d) = true, {m → d}   ie: the match succeeds & m is bound to d
+```
+if p(d) = true, {m → d}   ie: the match succeeds and m is bound to d
 if p(d) = false|nil  the match fails
 ```
 
@@ -743,39 +743,40 @@ using an inline function definition as a predicate:
 This facility allows the matcher to be used as a reconstructive parser - a parser which returns some constructed result 
 on successful parsing (an example of this is provided in the examples section).
 
+### `:not` and `:guard`
 
+`:not` and `:guard` may only be used with pattern collections used by `find*` and `for*`. They allow logical checks to 
+be made in pattern collections. The following example uses `:not` to match a one-way relation only:
 
-
-
-
-:not and :guard
-
-:not and :guard may only be used with pattern collections used by find* and for*. They allow logical checks to be made in pattern collections. The following example uses :not to match a one-way relation only...
-
+```clojure
 (mfind* ['((?a ?b) (:not (?b ?a)))
          '((p q)(x y)(q r)(y x))
         ]
   (mout '(?a ?b)))
-→ (p q)
+; → (p q)
+```
 
-The next example uses a guard to ensure matching with even numbers only...
+The next example uses a guard to ensure matching with even numbers only:
 
+```clojure
 (mfind* ['((?a ?b) (:guard (even? (? b))))
          '((a 1) (b 2) (c 3) (d 4))
         ]
   (mout '(?a ?b)))
-→ (b 2)
+; → (b 2)
+```
 
-...note that matcher variables are scoped within :guard forms.
+Note that matcher variables are scoped within `:guard` forms.
 
-You may use multiple forms with both :guard and :not in which case they are logically and'ed in sequence...
+You may use multiple forms with both `:guard` and `:not` in which case they are logically and'ed in sequence:
 
+```clojure
 (mfind* ['((?a ?b) (:guard (number? (? b)) (even? (? b))))
          '((a 1)(x y)(b 2)(y z)(c 3)(d 4))
         ]
   (mout '(?a ?b)))
-→ (b 2)
-
+; → (b 2)
+```
 
 a fuller example
 This provides an alternative to the example used in the section on state-changing operators. We recommend you read that first.
