@@ -15,8 +15,10 @@
 + [General Principles](#general-principles)
     - [Patterns](#patterns)
     - [Matcher Variables](#matcher-variables)
-+ Binding
-    - mlet
+    - [?](#?)
+    - [:=>](#:=>)
++ [Binding](#binding)
+    - [mlet](#mlet)
 + Matched Output
     - mout
     - ?
@@ -318,6 +320,37 @@ If you need to search for key values you should specify the match using vectors 
 
 See also predicates in patterns.
 
+### `?`
+
+The expression `(? y)` retrieves the value of the match variable `y` from matcher (pseudo) namespace...
+
+```clojure
+(mlet ['(?x ?y ?z) '(cat dog bat)]
+  (? y))
+; → dog
+```
+
+Unbound matcher variables have `nil` values as does the anonymous match variable `?_` which will always match with a 
+piece of data but does not retain the data it matches against:
+
+```clojure
+(mlet ['(?_ ?x) '(cat dog)]
+    (list (? _) (? x) (? y)))
+; → (nil dog nil)
+```
+
+### `:=>`
+
+`mcond`, `defmatch` (and other forms) can optionally use additional symbols to make their rule-based structure more 
+explicit, we recommend using `:=>` for example:
+
+```clojure
+(mcond [exp]
+    ((?x plus ?y)  :=> (+ (? x) (? y)))
+    ((?x minus ?y) :=> (- (? x) (? y)))
+    )
+```
+
 ## Binding
 
 ### `mlet`
@@ -378,51 +411,52 @@ piece of data but does not retain the data it matches against:
 ; → (nil dog nil)
 ```
 
+## Output
 
+### `mout`
 
+`mout` (`matcher-out`) is a convenience form to build structured output from a mixture of literals and bound match 
+variables:
 
-
-?
-The expression (? y) retrieves the value of the match variable "y" from matcher (pseudo) namespace...
-
-(mlet ['(?x ?y ?z) '(cat dog bat)]
-  (? y))
-→ dog
-
-Unbound matcher variables have nil values as does the anonymous match variable "?_" which will always match with a piece of data  but does not retain the data it matches against:
-
-(mlet ['(?_ ?x) '(cat dog)]
-    (list (? _) (? x) (? y)))
-→ (nil dog nil)
-
-
-
-
-
-mout
-mout (matcher-out) is a convenience form to build structured output from a mixture of literals and bound match variables:
-
+```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat)]
     (mout '(a ?x (a ?y) and a ?z)))
-→ (a cat (a dog) and a bat)
+; → (a cat (a dog) and a bat)
+```
 
-mout preserves the structures of enclosed maps, vectors, lists, etc:
+`mout` preserves the structures of enclosed maps, vectors, lists, etc:
+
+```clojure
 (mlet ['(?a ?b ?c) '(aa bb cc)]
   (mout '(list ?a [vector ?b and map {:a ?a :b ?b ?c ccc}])))
-→ (list aa [vector bb and map {:a aa, :b bb, cc ccc}])
-"??" directives may also be used in matcher-out expressions, in which case their value is appended into the resulting structure:
+' → (list aa [vector bb and map {:a aa, :b bb, cc ccc}])
+```
 
+`??` directives may also be used in matcher-out expressions, in which case their value is appended into the resulting 
+structure:
+
+```clojure
 (mlet ['(??pre x ??post)
        '(mango melon x apple pear berry)]
   (mout '(pre= ?pre post= ??post)))
+; → (pre= (mango melon)
+;    post= apple pear berry)
+```
 
-→ (pre= (mango melon)
-   post= apple pear berry)
+`mout` also allows `:eval` directives to evaluate Clojure code at mout expansion time. This is usually used to 
+manipulate matcher variable values (see example below). Note that you cannot directly refer to let variables in `:eval`
+forms.
 
-mout also allows :eval directives to evaluate Clojure code at mout expansion time. This is usually used to manipulate matcher variable values (see example below). Note that you cannot directly refer to let variables in :eval forms.
+```clojure
 (mlet ['(?a ?b ?c) '(1 2 3)]
   (mout '(?a ?b (:eval (+ 1 (? c))))))
 → (1 2 4)
+```
+
+
+
+
+
 
 
 
@@ -470,14 +504,6 @@ The mcond form will attempt to match the data it is given (the value of exp in t
 
 
 
-
-:=>
-mcond, defmatch (and other forms) can optionally use additional symbols to make their rule-based structure more explicit, we recommend using ":=>" for example:
-
-(mcond [exp]
-    ((?x plus ?y)  :=> (+ (? x) (? y)))
-    ((?x minus ?y) :=> (- (? x) (? y)))
-    )
 
 
 
