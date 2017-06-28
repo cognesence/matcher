@@ -14,17 +14,16 @@
 
 + [General Principles](#general-principles)
     - [Patterns](#patterns)
-    - [Match Variables `?` and Multiple Match Directives `??`](#matcher-variables)
+    - [Match Variables `?` and Multiple Match Directives `??`](#match-variables--and-multiple-match-directives-)
     - [The Semantics of `?`](#the-semantics-of-)
     - [Being Explicit with `:=>`](#being-explicit-with-)
 + [Binding](#binding)
-    - [mlet](#mlet)
-+ Matched Output
-    - mout
-    - ?
-+ Function Definition
-    - defmatch
-    - mfn
+    - [`mlet`](#mlet)
++ [Output](#output)
+    - [`mout`](#mout)
++ [Function Definition](#function-definition)
+    - [`defmatch`](#defmatch)
+    - [`mfn`](#mfn)
 + Matcher Namespace
     - mvars
     - with-mvars
@@ -35,9 +34,9 @@
     - mfor
     - mfor\*
 + Conditional Forms
-    - mcond
-    - mif
-    - massert
+    - [`mcond`](#mcond)
+    - [`mif`](#mif)
+    - [`massert`](#massert)
 + Advanced Features
     - Predicates in Patterns
     - :not and :guard
@@ -254,7 +253,7 @@ Anonymous match variables (which do not retain their values) are also provided, 
 
 ```clojure
 (matches '(?a ??_ frog ?_) '(cat dog bat frog fish))
-→ {tmp230 (dog bat), a cat, :pat (?a ??_ frog ?_), :it (cat dog bat frog fish)}
+; → {tmp230 (dog bat), a cat, :pat (?a ??_ frog ?_), :it (cat dog bat frog fish)}
 ```
 
 Single and multiple directives may also be used in `matcher-out` expressions. Single match directives have their values 
@@ -450,113 +449,126 @@ forms.
 ```clojure
 (mlet ['(?a ?b ?c) '(1 2 3)]
   (mout '(?a ?b (:eval (+ 1 (? c))))))
-→ (1 2 4)
+; → (1 2 4)
 ```
 
+## Function Definition
 
+### `defmatch`
 
+`defmatch` is similar in structure to `mcond`, wrapping an implicit `mcond` form with a function definition:
 
-
-
-
-
-
-mif
-mif (matcher-if) is a matcher equivalent of if...
-
-(mif ['(?a ?b) '(1 2)]   (list 'yip (? a)) 'nope) →  (yip 1))
-(mif ['(?a ?b) '(1 2 3)] (list 'yip (? a)) 'nope) →  nope)
-
-Like if the else clause of mif is optional...
-
-(mif ['(?a ?b) '(1 2)]   (list 'yip (? a))) → (yip 1))
-(mif ['(?a ?b) '(1 2 3)] (list 'yip (? a))) → nil)
-
-
-
-
-
-
-massert
-massert offers a run-time assertion mechanism based on patterns
-
-user=> (massert ['(?a ?b) '(cat dog)] "whoops no match")
-nil
-
-user=> (massert ['(?a ?b) '(cat dog bat)] "whoops no match")
-RuntimeException whoops no match  user/eval276 (NO_SOURCE_FILE:80)
-
-Note: the precise output of massert when it fails will depend on its run-time context.
-
-
-
-
-
-mcond
-mcond is the most general of the switching/specialisation forms, it can be used to specify a series of pattern based rules as follows:
-
-(mcond [exp]
-    ((?x plus ?y)  (+ (? x) (? y)))
-    ((?x minus ?y) (- (? x) (? y)))
-    )
-
-The mcond form will attempt to match the data it is given (the value of exp in the example above) to the first pattern in its sequence of rules (?x plus ?y) then its second (?x minus ?y) until it finds a rule which matches, it then evaluates the body of that rule and returns the result. As with other matcher forms, mcond returns nil if it fails to find a match.  The mcond form above will return 9 if exp has a value of (5 plus 4) or 1 if exp has a value of (5 minus 4).
-
-
-
-
-
-
-
-
-defmatch
-defmatch is similar in structure to mcond, wrapping an implicit mcond form with a function definition:
-
+```clojure
 (defmatch math1 []
   ((?x plus ?y)  :=> (+ (? x) (? y)))
   ((?x minus ?y) :=> (- (? x) (? y)))
   )
+(math1 '(4 plus 5))  ; → 9
+(math1 '(4 minus 5)) ; → -1
+(math1 '(4 times 5)) ; → nil
+```
 
-(math1 '(4 plus 5))  → 9
-(math1 '(4 minus 5)) → -1
-(math1 '(4 times 5)) → nil
+`defmatch` forms can take explicit arguments in addition to their implicit matched-data argument. The example below 
+illustrates this and additionally uses an anonymous match variable to handle default cases:
 
-defmatch forms can take explicit arguments in addition to their implicit matched-data argument. The example below illustrates this and additionally uses an anonymous match variable to handle default cases:
-
+```clojure
 (defmatch math2 [x]
   ((add ?y)  :=> (+ x (? y)))
   ((subt ?y) :=> (- x (? y)))
   ( ?_       :=> x)
   )
-
-(math2 '(add 7) 12) → 19
-(math2 '(subt 7) 12) → 5
-(math2 '(times 7) 12) → 12
+(math2 '(add 7) 12)   ; → 19
+(math2 '(subt 7) 12)  ; → 5
+(math2 '(times 7) 12) ; → 12
+```
 
 Due to the way petterns may be specified at the symbol level, defmatch forms can be used to specialise on keywords and thereby resemble some kind of dispatch, eg:
 
+```clojure
 (defmatch calcd [x y]
   (:add  :=> (+ x y))
   (:subt :=> (- x y))
   (:mult :=> (* x y))
   )
-
 (calcd :add 5 4)  → 9
 (calcd :mult 5 4) → 20
+```
 
+### `mfn`
 
+This is the matcher equivalent of `fn`, which builds an anonymous `defmatch` form.
 
-
-
-
-mfn
-This is the matcher equivalent of fn, which builds an anonymous defmatch form.
-
+```clojure
 (map (mfn []
         ((:add ?x ?y)  :=> (+ (? x) (? y)))
         ((:subt ?x ?y) :=> (- (? x) (? y))))
   '((:add 4 5)(:add 9 3)(:subt 9 3)))
-→ (9 12 6)
+; → (9 12 6)
+```
+
+## Conditional Forms
+
+### `mcond`
+
+`mcond` is the most general of the switching/specialisation forms, it can be used to specify a series of pattern based 
+rules as follows:
+
+```clojure
+(mcond [exp]
+    ((?x plus ?y)  (+ (? x) (? y)))
+    ((?x minus ?y) (- (? x) (? y)))
+    )
+```
+
+The `mcond` form will attempt to match the data it is given (the value of exp in the example above) to the first pattern 
+in its sequence of rules `(?x plus ?y)` then its second `(?x minus ?y)` until it finds a rule which matches, it then 
+evaluates the body of that rule and returns the result. As with other matcher forms, `mcond` returns `nil` if it fails
+to find a match.  The `mcond` form above will return `9` if `exp` has a value of `(5 plus 4)` or `1` if `exp` has a 
+value of `(5 minus 4)`.
+
+### `mif`
+
+`mif` (`matcher-if`) is a matcher equivalent of `if`:
+
+```clojure
+(mif ['(?a ?b) '(1 2)]   (list 'yip (? a)) 'nope) ; →  (yip 1))
+(mif ['(?a ?b) '(1 2 3)] (list 'yip (? a)) 'nope) ; →  nope)
+```
+
+Like if the else clause of `mif` is optional:
+
+```clojure
+(mif ['(?a ?b) '(1 2)]   (list 'yip (? a))) → (yip 1))
+(mif ['(?a ?b) '(1 2 3)] (list 'yip (? a))) → nil)
+```
+
+### `massert`
+
+`massert` offers a run-time assertion mechanism based on patterns:
+
+```clojure
+(massert ['(?a ?b) '(cat dog)] "whoops no match")
+; → nil
+
+(massert ['(?a ?b) '(cat dog bat)] "whoops no match")
+; → RuntimeException whoops no match  user/eval276 (NO_SOURCE_FILE:80)
+```
+
+Note that the precise output of massert when it fails will depend on its run-time context.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
