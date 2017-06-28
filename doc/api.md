@@ -24,19 +24,18 @@
 + [Function Definition](#function-definition)
     - [`defmatch`](#defmatch)
     - [`mfn`](#mfn)
++ [Conditional Forms](#conditional-forms)
+    - [`mcond`](#mcond)
+    - [`mif`](#mif)
+    - [`massert`](#massert)
 + Matcher Namespace
-    - mvars
-    - with-mvars
-    - :it
+    - [`mvars` and `with-mvars`](#)
+    - [`:it`](#)
 + Searching and Selection
     - mfind
     - mfind\*
     - mfor
     - mfor\*
-+ Conditional Forms
-    - [`mcond`](#mcond)
-    - [`mif`](#mif)
-    - [`massert`](#massert)
 + Advanced Features
     - Predicates in Patterns
     - :not and :guard
@@ -556,30 +555,18 @@ Like if the else clause of `mif` is optional:
 
 Note that the precise output of massert when it fails will depend on its run-time context.
 
+## Matcher Namespace
 
+### `mvars` and `with-mvars`
 
+A matcher (pseudo) namespace is maintained, this is not a Clojure namespace but rather it is a map (called `mvars`) 
+which associates named matcher variables with their values. `mvars` is a lexically bound Clojure symbol accessible 
+within the body of all matcher expressions.
 
+`with-mvars` provides a simple way to inject variables into matcher namespace or shadow existing values. See the 
+following example:
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-mvars & with-mvars
-A matcher (pseudo) namespace is maintained, this is not a Clojure namespace but rather it is a map (called mvars) which associates named matcher variables with their values. mvars is a lexically bound Clojure symbol accessible within the body of all matcher expressions.
-
-with-mvars provides a simple way to inject variables into matcher namespace or shadow existing values. See the following example:
-
+```clojure
 (with-mvars {'a (+ 2 3), 'b (- 3 4)}
   (println mvars)
   (with-mvars {'b 'bb, 'd 'xx, 'e 'yy}
@@ -589,31 +576,27 @@ with-mvars provides a simple way to inject variables into matcher namespace or s
     (println "  " mvars))
   (println mvars))
 
-output...
-{b -1, a 5}
-   {e yy, d xx, b bb, a 5}
-     {c spam, :pat (?a ?b ?d ?c),
-        :it (5 bb xx spam),
-        e yy, d xx, b bb, a 5}
-   {e yy, d xx, b bb, a 5}
-{b -1, a 5}
-nil
+; → {b -1, a 5}
+;      {e yy, d xx, b bb, a 5}
+;        {c spam, :pat (?a ?b ?d ?c),
+;           :it (5 bb xx spam),
+;           e yy, d xx, b bb, a 5}
+;      {e yy, d xx, b bb, a 5}
+;   {b -1, a 5}
+;   nil
+```
 
+### `:it`
 
+Note that the matcher adds the last datum that was match (called `:it`) and the last pattern `:it` was matched against 
+into namespace.
 
+While direct reference to `mvars` is generally unnecessary, it is useful for writing new macros and it allows the 
+results of successful matching operations to be saved for later processing or passed to other functions in cases where 
+the lexical scoping of matcher variables is found restrictive.
 
+`mfind` and `mfind*`
 
-:it
-Note that the matcher adds the last datum that was match (called :it) and the last pattern :it was matched against into namespace.
-
-While direct reference to mvars is generally unnecessary, it is useful for writing new macros and it allows the results of successful matching operations to be saved for later processing or passed to other functions in cases where the lexical scoping of matcher variables is found restrictive.
-
-
-
-
-
-
-mfind & mfind*
 The searching and selection forms, mfind & mfind*, match patterns across collections of data, returning the first match which is found. mfind matches one pattern across a collection of data and mfind* consistently matches a group of patterns across a collection of data. The next two examples use the following data:
 
 (def food
