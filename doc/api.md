@@ -28,9 +28,9 @@
     - [`mcond`](#mcond)
     - [`mif`](#mif)
     - [`massert`](#massert)
-+ Matcher Namespace
-    - [`mvars` and `with-mvars`](#)
-    - [`:it`](#)
++ [The Matcher Namespace](#the-matcher-namespace)
+    - [`mvars` and `with-mvars`](#mvars-and-with-mvars)
+    - [`:it`](#it)
 + Searching and Selection
     - mfind
     - mfind\*
@@ -555,7 +555,7 @@ Like if the else clause of `mif` is optional:
 
 Note that the precise output of massert when it fails will depend on its run-time context.
 
-## Matcher Namespace
+## The Matcher Namespace
 
 ### `mvars` and `with-mvars`
 
