@@ -56,8 +56,8 @@ The most primitive form of matcher expression provided for general use is `mlet`
 follows:
 
 ```clojure
-(mlet [ pattern datum ]
-  ...body...
+(mlet [pattern datum]
+  ; Body
   )
 ```
 
@@ -114,9 +114,8 @@ rules as follows:
 
 ```clojure
 (mcond [exp]
-    ((?x plus ?y)  (+ (? x) (? y)))
-    ((?x minus ?y) (- (? x) (? y)))
-    )
+  ((?x plus ?y)  (+ (? x) (? y)))
+  ((?x minus ?y) (- (? x) (? y))))
 ```
 
 The `mcond` form will attempt to match the data it is given (the value of `exp` in the example above) to the first 
@@ -128,9 +127,8 @@ rule-based structure more explicit, we recommend using `:=>` for example:
 
 ```clojure
 (mcond [exp]
-    ((?x plus ?y)  :=> (+ (? x) (? y)))
-    ((?x minus ?y) :=> (- (? x) (? y)))
-    )
+  ((?x plus ?y)  :=> (+ (? x) (? y)))
+  ((?x minus ?y) :=> (- (? x) (? y))))
 ```
 
 `defmatch` is similar in structure to `mcond`, wrapping an implicit `mcond` form with a function definition:
@@ -138,8 +136,7 @@ rule-based structure more explicit, we recommend using `:=>` for example:
 ```clojure
 (defmatch math1 []
   ((?x plus ?y)  :=> (+ (? x) (? y)))
-  ((?x minus ?y) :=> (- (? x) (? y)))
-  )
+  ((?x minus ?y) :=> (- (? x) (? y))))
 
 (math1 '(4 plus 5))  ; => 9
 (math1 '(4 minus 5)) ; => -1
@@ -151,10 +148,9 @@ illustrates this and additionally uses an anonymous match variable to handle def
 
 ```clojure
 (defmatch math2 [x]
-  ((add ?y)  :=> (+ x (? y)))
+  ((add ?y) :=> (+ x (? y)))
   ((subt ?y) :=> (- x (? y)))
-  ( ?_       :=> x)
-  )
+  (?_ :=> x))
 
 (math2 '(add 7) 12)   ; => 19
 (math2 '(subt 7) 12)  ; => 5
@@ -168,8 +164,7 @@ thereby resemble some kind of dispatch, for example:
 (defmatch calcd [x y]
   (:add  :=> (+ x y))
   (:subt :=> (- x y))
-  (:mult :=> (* x y))
-  )
+  (:mult :=> (* x y)))
 
 (calcd :add 5 4)  ; => 9
 (calcd :mult 5 4) ; => 20
@@ -183,13 +178,12 @@ consistently matches a group of patterns across a collection of data). The next 
 
 ```clojure
 (def food
- '([isa cherry  fruit]   [isa cabbage veg]
-   [isa chilli  veg]     [isa apple   fruit]
-   [isa radish veg]      [isa leek    veg]
-   [color leek  green]   [color chilli  red]
-   [color apple green]   [color cherry  red]
-   [color cabbage green] [color radish red]
-  ))
+  '([isa cherry fruit] [isa cabbage veg]
+    [isa chilli veg] [isa apple fruit]
+    [isa radish veg] [isa leek veg]
+    [color leek green] [color chilli red]
+    [color apple green] [color cherry red]
+    [color cabbage green] [color radish red]))
 ```
 
 Note that in this example we use vectors in our data, this is perhaps idiomatic but we sometimes prefer wrapping tuples 
@@ -204,9 +198,8 @@ pattern:
 `mfind*` takes multiple patterns:
 
 ```clojure
-(mfind* ['([isa ?f veg] [color ?f red])
-         food]
-    (? f))
+(mfind* ['([isa ?f veg] [color ?f red]) food]
+  (? f))
 ; => chilli
 ```
 
@@ -220,9 +213,8 @@ data presented above:
 (mfor ['[isa ?f veg] food] (? f))
 ; => (cabbage chilli radish leek)
 
-(mfor* ['([isa ?f veg] [color ?f red])
-        food]
-    (? f))
+(mfor* ['([isa ?f veg] [color ?f red]) food]
+  (? f))
 ; => (chilli radish)
 ```
 
@@ -266,7 +258,7 @@ Anonymous match variables do have any meaning in output patterns so are treated 
 
 ```clojure
 (mlet ['(??pre bat ??_) '(cat dog bat frog fish)]
-    (mout '(pre= ?pre post= ??_)))
+  (mout '(pre= ?pre post= ??_)))
 ; => (pre= (cat dog) post= ??_)
 ```
 
@@ -275,7 +267,7 @@ which bind to other match variables:
 
 ```clojure
 (mlet ['(??pre bat ??post) '(cat dog bat ?x ?y)]
-   (mout '(pre= ?pre post= ??post)))
+  (mout '(pre= ?pre post= ??post)))
 ; => (pre= (cat dog) post= ?x ?y)
 ```
 
@@ -285,7 +277,7 @@ Other examples:
 
 ```clojure
 (mlet ['((a b) {n ?x m ?y}) '((a b) {n 1 m 2})]
-    (mout '(n= ?x m= ?y)))
+  (mout '(n= ?x m= ?y)))
 ; => (n= 1 m= 2)
 ```
 
@@ -294,7 +286,7 @@ this works okay:
 
 ```clojure
 (mlet ['{a ?x, b ?y, c ?z} '{a 1, b 2, c 3}]
-    (mout '(?x ?y ?z)))
+  (mout '(?x ?y ?z)))
 ; => (1 2 3)
 ```
 
@@ -302,7 +294,7 @@ However, this does not:
 
 ```clojure
 (mlet ['{a ?x, ?y 2, c ?z} '{a 1, b 2, c 3}]
-    (mout '(?x ?y ?z)))
+  (mout '(?x ?y ?z)))
 ; => nil
 ```
 
@@ -310,7 +302,7 @@ If you need to search for key values you should specify the match using vectors 
 
 ```clojure
 (mlet ['[??_ [?x 2] ??_] '{a 1, b 2, c 3}]
-    (? x))
+  (? x))
 ; => b
 ```
 
@@ -331,7 +323,7 @@ piece of data but does not retain the data it matches against:
 
 ```clojure
 (mlet ['(?_ ?x) '(cat dog)]
-    (list (? _) (? x) (? y)))
+  (list (? _) (? x) (? y)))
 ; => (nil dog nil)
 ```
 
@@ -342,9 +334,8 @@ explicit, we recommend using `:=>` for example:
 
 ```clojure
 (mcond [exp]
-    ((?x plus ?y)  :=> (+ (? x) (? y)))
-    ((?x minus ?y) :=> (- (? x) (? y)))
-    )
+  ((?x plus ?y)  :=> (+ (? x) (? y)))
+  ((?x minus ?y) :=> (- (? x) (? y))))
 ```
 
 ## Binding
@@ -378,7 +369,7 @@ match variable `y` from matcher (pseudo) namespace.
 
 ```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat frog)]
-    (mout '(a ?x a ?y and a ?z)))
+  (mout '(a ?x a ?y and a ?z)))
 ; => nil
 ```
 
@@ -392,8 +383,7 @@ also holds true with nested matcher forms, so given the data `(dog bat)` the fol
   (mlet ['(?x ?y) '(cat dog)]
     (or (mlet ['(?y ?z) data]
           (mout '(?x ?y ?z)))
-      'inner-match-failed)
-    ))
+      'inner-match-failed)))
 (foo '(dog bat)) ; => (cat dog bat)
 (foo '(rat bat)) ; => inner-match-failed
 ```
@@ -403,7 +393,7 @@ piece of data but does not retain the data it matches against:
 
 ```clojure
 (mlet ['(?_ ?x) '(cat dog)]
-    (list (? _) (? x) (? y)))
+  (list (? _) (? x) (? y)))
 ; => (nil dog nil)
 ```
 
@@ -416,7 +406,7 @@ variables:
 
 ```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat)]
-    (mout '(a ?x (a ?y) and a ?z)))
+  (mout '(a ?x (a ?y) and a ?z)))
 ; => (a cat (a dog) and a bat)
 ```
 
@@ -436,7 +426,7 @@ structure:
        '(mango melon x apple pear berry)]
   (mout '(pre= ?pre post= ??post)))
 ; => (pre= (mango melon)
-;    post= apple pear berry)
+;     post= apple pear berry)
 ```
 
 `mout` also allows `:eval` directives to evaluate Clojure code at mout expansion time. This is usually used to 
@@ -458,8 +448,7 @@ forms.
 ```clojure
 (defmatch math1 []
   ((?x plus ?y)  :=> (+ (? x) (? y)))
-  ((?x minus ?y) :=> (- (? x) (? y)))
-  )
+  ((?x minus ?y) :=> (- (? x) (? y))))
 (math1 '(4 plus 5))  ; => 9
 (math1 '(4 minus 5)) ; => -1
 (math1 '(4 times 5)) ; => nil
@@ -470,10 +459,9 @@ illustrates this and additionally uses an anonymous match variable to handle def
 
 ```clojure
 (defmatch math2 [x]
-  ((add ?y)  :=> (+ x (? y)))
+  ((add ?y) :=> (+ x (? y)))
   ((subt ?y) :=> (- x (? y)))
-  ( ?_       :=> x)
-  )
+  (?_ :=> x))
 (math2 '(add 7) 12)   ; => 19
 (math2 '(subt 7) 12)  ; => 5
 (math2 '(times 7) 12) ; => 12
@@ -485,10 +473,9 @@ Due to the way petterns may be specified at the symbol level, `defmatch` forms c
 (defmatch calcd [x y]
   (:add  :=> (+ x y))
   (:subt :=> (- x y))
-  (:mult :=> (* x y))
-  )
-(calcd :add 5 4)  => 9
-(calcd :mult 5 4) => 20
+  (:mult :=> (* x y)))
+(calcd :add 5 4)  ; => 9
+(calcd :mult 5 4) ; => 20
 ```
 
 ### `mfn`
@@ -512,9 +499,8 @@ rules as follows:
 
 ```clojure
 (mcond [exp]
-    ((?x plus ?y)  (+ (? x) (? y)))
-    ((?x minus ?y) (- (? x) (? y)))
-    )
+  ((?x plus ?y)  (+ (? x) (? y)))
+  ((?x minus ?y) (- (? x) (? y))))
 ```
 
 The `mcond` form will attempt to match the data it is given (the value of exp in the example above) to the first pattern 
