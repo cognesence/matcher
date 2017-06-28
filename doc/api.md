@@ -61,18 +61,18 @@ follows:
   )
 ```
 
-`mlet` operates as follows: if the pattern matches the datum, binding any matcher variables as part of the matching
+`mlet` operates as follows - if the pattern matches the datum, binding any matcher variables as part of the matching
 process then `mlet` evaluates its body in the context of these bindings. If the pattern and datum do not match, `mlet`
 returns `nil`.
 
 Match variables are prefixed with a `?` (or `??` - see later), in the following example, the pattern `(?x ?y ?z)`
 matches the datum `(cat dog bat)` binding match variables `x`, `y`, `z` to `'cat`, `'dog`, `'bat` respectively and the
-expression `(? y)` in the body of mlet retrieves the value of the match variable `y` from matcher namespace.
+expression `(? y)` in the body of `mlet` retrieves the value of the match variable `y` from the matcher namespace.
 
 ```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat)]
   (? y))
-; → dog
+; => dog
 ```
 
 `mout` (`matcher-out`) is a convenience form to build structured output from a mixture of literals and bound match
@@ -81,7 +81,7 @@ variables:
 ```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat)]
     (mout '(a ?x (a ?y) and a ?z)))
-; → (a cat (a dog) and a bat)
+; => (a cat (a dog) and a bat)
 ```
 
 `mlet` forms return `nil` if matches fail:
@@ -89,7 +89,7 @@ variables:
 ```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat frog)]
     (mout '(a ?x a ?y and a ?z)))
-; → nil
+; => nil
 ```
 
 In addition to single element match directives (prefixed with `?`) the matcher supports multiple match directives which
@@ -100,12 +100,12 @@ match against zero or more elements of data (these are prefixed with `??`). Mult
 (mlet ['(??pre x ??post)
        '(mango melon x apple pear berry)]
   (mout '(pre= ?pre post= ??post)))
-; → (pre= (mango melon)
-;    post= apple pear berry)
+; => (pre= (mango melon)
+;     post= apple pear berry)
 ```
 
 All patterns may be structured, containing sequences and subsequences (and maps within sequences within maps within
-sequences, etc), so it is possible to use patterns to extract data from nested data structures.
+sequences, etc.), so it is possible to use patterns to extract data from nested data structures.
 
 ### Switching and Specialisation
 
@@ -122,7 +122,7 @@ rules as follows:
 The `mcond` form will attempt to match the data it is given (the value of `exp` in the example above) to the first 
 pattern in its sequence of rules `(?x plus ?y)` then its second `(?x minus ?y)` until it finds a rule which matches, it 
 then evaluates the body of that rule and returns the result. As with other matcher forms, `mcond` returns `nil` if it 
-fails to find a match.  The mcond form above will return `9` if exp has a value of `(5 plus 4)` or `1` if `exp` has a 
+fails to find a match.  The`mcond`form above will return `9` if exp has a value of `(5 plus 4)` or `1` if `exp` has a 
 value of `(5 minus 4)`. Note that `mcond` (and other forms) can optionally use additional symbols to make their 
 rule-based structure more explicit, we recommend using `:=>` for example:
 
@@ -141,9 +141,9 @@ rule-based structure more explicit, we recommend using `:=>` for example:
   ((?x minus ?y) :=> (- (? x) (? y)))
   )
 
-(math1 '(4 plus 5))  ; → 9
-(math1 '(4 minus 5)) ; → -1
-(math1 '(4 times 5)) ; → nil
+(math1 '(4 plus 5))  ; => 9
+(math1 '(4 minus 5)) ; => -1
+(math1 '(4 times 5)) ; => nil
 ```
 
 `defmatch` forms can take explicit arguments in addition to their implicit matched-data argument. The example below 
@@ -156,13 +156,13 @@ illustrates this and additionally uses an anonymous match variable to handle def
   ( ?_       :=> x)
   )
 
-(math2 '(add 7) 12)   ; → 19
-(math2 '(subt 7) 12)  ; → 5
-(math2 '(times 7) 12) ; → 12
+(math2 '(add 7) 12)   ; => 19
+(math2 '(subt 7) 12)  ; => 5
+(math2 '(times 7) 12) ; => 12
 ```
 
-Due to the way patterns may be specified at the symbol level, defmatch forms can be used to specialise on keywords and 
-thereby resemble some kind of dispatch, e.g.:
+Due to the way patterns may be specified at the symbol level, `defmatch` forms can be used to specialise on keywords and 
+thereby resemble some kind of dispatch, for example:
 
 ```clojure
 (defmatch calcd [x y]
@@ -171,8 +171,8 @@ thereby resemble some kind of dispatch, e.g.:
   (:mult :=> (* x y))
   )
 
-(calcd :add 5 4)  ; → 9
-(calcd :mult 5 4) ; → 20
+(calcd :add 5 4)  ; => 9
+(calcd :mult 5 4) ; => 20
 ```
 
 ### Searching and Selection
@@ -198,7 +198,7 @@ pattern:
 
 ```clojure
 (mfind ['[isa ?f veg] food] (? f))
-; → cabbage
+; => cabbage
 ```
 
 `mfind*` takes multiple patterns:
@@ -207,7 +207,7 @@ pattern:
 (mfind* ['([isa ?f veg] [color ?f red])
          food]
     (? f))
-; → chilli
+; => chilli
 ```
 
 ### Iteration and Collection
@@ -218,12 +218,12 @@ data presented above:
 
 ```clojure
 (mfor ['[isa ?f veg] food] (? f))
-; → (cabbage chilli radish leek)
+; => (cabbage chilli radish leek)
 
 (mfor* ['([isa ?f veg] [color ?f red])
         food]
     (? f))
-; → (chilli radish)
+; => (chilli radish)
 ```
 
 ## General Principles 
@@ -243,14 +243,14 @@ In the following example match variable `a` matches with `'cat` and `b` matches 
 
 ```clojure
 (matches '(?a ??b frog) '(cat dog bat frog))
-; → {b (dog bat), a cat, :pat (?a ??b frog), :it (cat dog bat frog)}
+; => {b (dog bat), a cat, :pat (?a ??b frog), :it (cat dog bat frog)}
 ```
 
 Anonymous match variables (which do not retain their values) are also provided, these are `?_` and `??_`.
 
 ```clojure
 (matches '(?a ??_ frog ?_) '(cat dog bat frog fish))
-; → {tmp230 (dog bat), a cat, :pat (?a ??_ frog ?_), :it (cat dog bat frog fish)}
+; => {tmp230 (dog bat), a cat, :pat (?a ??_ frog ?_), :it (cat dog bat frog fish)}
 ```
 
 Single and multiple directives may also be used in `matcher-out` expressions. Single match directives have their values 
@@ -259,7 +259,7 @@ pushed into the output using cons multiple directives have their value appended 
 ```clojure
 (mlet ['(??pre bat ??post) '(cat dog bat frog fish)]
   (mout '(pre= ?pre post= ??post)))
-; → (pre= (cat dog) post= frog fish)
+; => (pre= (cat dog) post= frog fish)
 ```
 
 Anonymous match variables do have any meaning in output patterns so are treated as literals:
@@ -267,7 +267,7 @@ Anonymous match variables do have any meaning in output patterns so are treated 
 ```clojure
 (mlet ['(??pre bat ??_) '(cat dog bat frog fish)]
     (mout '(pre= ?pre post= ??_)))
-; → (pre= (cat dog) post= ??_)
+; => (pre= (cat dog) post= ??_)
 ```
 
 Moreover, all match variables which are not bound are treated as literals in match output as are any match variables 
@@ -276,7 +276,7 @@ which bind to other match variables:
 ```clojure
 (mlet ['(??pre bat ??post) '(cat dog bat ?x ?y)]
    (mout '(pre= ?pre post= ??post)))
-; → (pre= (cat dog) post= ?x ?y)
+; => (pre= (cat dog) post= ?x ?y)
 ```
 
 This is an important and useful feature - see some of the worked examples for ideas.
@@ -286,7 +286,7 @@ Other examples:
 ```clojure
 (mlet ['((a b) {n ?x m ?y}) '((a b) {n 1 m 2})]
     (mout '(n= ?x m= ?y)))
-; → (n= 1 m= 2)
+; => (n= 1 m= 2)
 ```
 
 Note there is a restriction in matching within maps - you can only use match variables to match values, not keys. So 
@@ -295,7 +295,7 @@ this works okay:
 ```clojure
 (mlet ['{a ?x, b ?y, c ?z} '{a 1, b 2, c 3}]
     (mout '(?x ?y ?z)))
-; → (1 2 3)
+; => (1 2 3)
 ```
 
 However, this does not:
@@ -303,7 +303,7 @@ However, this does not:
 ```clojure
 (mlet ['{a ?x, ?y 2, c ?z} '{a 1, b 2, c 3}]
     (mout '(?x ?y ?z)))
-; → nil
+; => nil
 ```
 
 If you need to search for key values you should specify the match using vectors as follows:
@@ -311,7 +311,7 @@ If you need to search for key values you should specify the match using vectors 
 ```clojure
 (mlet ['[??_ [?x 2] ??_] '{a 1, b 2, c 3}]
     (? x))
-; → b
+; => b
 ```
 
 See also predicates in patterns.
@@ -323,7 +323,7 @@ The expression `(? y)` retrieves the value of the match variable `y` from matche
 ```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat)]
   (? y))
-; → dog
+; => dog
 ```
 
 Unbound matcher variables have `nil` values as does the anonymous match variable `?_` which will always match with a 
@@ -332,7 +332,7 @@ piece of data but does not retain the data it matches against:
 ```clojure
 (mlet ['(?_ ?x) '(cat dog)]
     (list (? _) (? x) (? y)))
-; → (nil dog nil)
+; => (nil dog nil)
 ```
 
 ### Being Explicit with `:=>`
@@ -365,13 +365,13 @@ matching process then `mlet` evaluates its body in the context of these bindings
 `mlet` returns `nil`.
 
 In the following example, the pattern `(?x ?y ?z)` matches the datum `(cat dog bat)` binding match variables `x`, `y`, 
-`z` to `'cat`, `'dog`, `'bat` respectively and the expression `(? y)` in the body of mlet retrieves the value of the 
+`z` to `'cat`, `'dog`, `'bat` respectively and the expression `(? y)` in the body of `mlet` retrieves the value of the 
 match variable `y` from matcher (pseudo) namespace.
 
 ```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat)]
   (? y))
-; → dog
+; => dog
 ```
 
 `mlet` forms return `nil` if matches fail:
@@ -379,7 +379,7 @@ match variable `y` from matcher (pseudo) namespace.
 ```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat frog)]
     (mout '(a ?x a ?y and a ?z)))
-; → nil
+; => nil
 ```
 
 Once bound a match variable cannot be implicitly re-bound so whilst the pattern `(?x dog ?x)` matches `(cat dog cat)` it 
@@ -394,8 +394,8 @@ also holds true with nested matcher forms, so given the data `(dog bat)` the fol
           (mout '(?x ?y ?z)))
       'inner-match-failed)
     ))
-(foo '(dog bat)) ; → (cat dog bat)
-(foo '(rat bat)) ; → inner-match-failed
+(foo '(dog bat)) ; => (cat dog bat)
+(foo '(rat bat)) ; => inner-match-failed
 ```
 
 Unbound matcher variables have `nil` values as does the anonymous match variable `?_` which will always match with a 
@@ -404,7 +404,7 @@ piece of data but does not retain the data it matches against:
 ```clojure
 (mlet ['(?_ ?x) '(cat dog)]
     (list (? _) (? x) (? y)))
-; → (nil dog nil)
+; => (nil dog nil)
 ```
 
 ## Output
@@ -417,7 +417,7 @@ variables:
 ```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat)]
     (mout '(a ?x (a ?y) and a ?z)))
-; → (a cat (a dog) and a bat)
+; => (a cat (a dog) and a bat)
 ```
 
 `mout` preserves the structures of enclosed maps, vectors, lists, etc:
@@ -425,7 +425,7 @@ variables:
 ```clojure
 (mlet ['(?a ?b ?c) '(aa bb cc)]
   (mout '(list ?a [vector ?b and map {:a ?a :b ?b ?c ccc}])))
-' → (list aa [vector bb and map {:a aa, :b bb, cc ccc}])
+' => (list aa [vector bb and map {:a aa, :b bb, cc ccc}])
 ```
 
 `??` directives may also be used in matcher-out expressions, in which case their value is appended into the resulting 
@@ -435,7 +435,7 @@ structure:
 (mlet ['(??pre x ??post)
        '(mango melon x apple pear berry)]
   (mout '(pre= ?pre post= ??post)))
-; → (pre= (mango melon)
+; => (pre= (mango melon)
 ;    post= apple pear berry)
 ```
 
@@ -446,7 +446,7 @@ forms.
 ```clojure
 (mlet ['(?a ?b ?c) '(1 2 3)]
   (mout '(?a ?b (:eval (+ 1 (? c))))))
-; → (1 2 4)
+; => (1 2 4)
 ```
 
 ## Function Definition
@@ -460,9 +460,9 @@ forms.
   ((?x plus ?y)  :=> (+ (? x) (? y)))
   ((?x minus ?y) :=> (- (? x) (? y)))
   )
-(math1 '(4 plus 5))  ; → 9
-(math1 '(4 minus 5)) ; → -1
-(math1 '(4 times 5)) ; → nil
+(math1 '(4 plus 5))  ; => 9
+(math1 '(4 minus 5)) ; => -1
+(math1 '(4 times 5)) ; => nil
 ```
 
 `defmatch` forms can take explicit arguments in addition to their implicit matched-data argument. The example below 
@@ -474,12 +474,12 @@ illustrates this and additionally uses an anonymous match variable to handle def
   ((subt ?y) :=> (- x (? y)))
   ( ?_       :=> x)
   )
-(math2 '(add 7) 12)   ; → 19
-(math2 '(subt 7) 12)  ; → 5
-(math2 '(times 7) 12) ; → 12
+(math2 '(add 7) 12)   ; => 19
+(math2 '(subt 7) 12)  ; => 5
+(math2 '(times 7) 12) ; => 12
 ```
 
-Due to the way petterns may be specified at the symbol level, defmatch forms can be used to specialise on keywords and thereby resemble some kind of dispatch, eg:
+Due to the way petterns may be specified at the symbol level, `defmatch` forms can be used to specialise on keywords and thereby resemble some kind of dispatch, eg:
 
 ```clojure
 (defmatch calcd [x y]
@@ -487,8 +487,8 @@ Due to the way petterns may be specified at the symbol level, defmatch forms can
   (:subt :=> (- x y))
   (:mult :=> (* x y))
   )
-(calcd :add 5 4)  → 9
-(calcd :mult 5 4) → 20
+(calcd :add 5 4)  => 9
+(calcd :mult 5 4) => 20
 ```
 
 ### `mfn`
@@ -500,7 +500,7 @@ This is the matcher equivalent of `fn`, which builds an anonymous `defmatch` for
         ((:add ?x ?y)  :=> (+ (? x) (? y)))
         ((:subt ?x ?y) :=> (- (? x) (? y))))
   '((:add 4 5)(:add 9 3)(:subt 9 3)))
-; → (9 12 6)
+; => (9 12 6)
 ```
 
 ## Conditional Forms
@@ -528,15 +528,15 @@ value of `(5 minus 4)`.
 `mif` (`matcher-if`) is a matcher equivalent of `if`:
 
 ```clojure
-(mif ['(?a ?b) '(1 2)]   (list 'yip (? a)) 'nope) ; →  (yip 1))
-(mif ['(?a ?b) '(1 2 3)] (list 'yip (? a)) 'nope) ; →  nope)
+(mif ['(?a ?b) '(1 2)]   (list 'yip (? a)) 'nope) ; =>  (yip 1))
+(mif ['(?a ?b) '(1 2 3)] (list 'yip (? a)) 'nope) ; =>  nope)
 ```
 
 Like if the else clause of `mif` is optional:
 
 ```clojure
-(mif ['(?a ?b) '(1 2)]   (list 'yip (? a))) → (yip 1))
-(mif ['(?a ?b) '(1 2 3)] (list 'yip (? a))) → nil)
+(mif ['(?a ?b) '(1 2)]   (list 'yip (? a))) => (yip 1))
+(mif ['(?a ?b) '(1 2 3)] (list 'yip (? a))) => nil)
 ```
 
 ### `massert`
@@ -545,10 +545,10 @@ Like if the else clause of `mif` is optional:
 
 ```clojure
 (massert ['(?a ?b) '(cat dog)] "whoops no match")
-; → nil
+; => nil
 
 (massert ['(?a ?b) '(cat dog bat)] "whoops no match")
-; → RuntimeException whoops no match  user/eval276 (NO_SOURCE_FILE:80)
+; => RuntimeException whoops no match  user/eval276 (NO_SOURCE_FILE:80)
 ```
 
 Note that the precise output of massert when it fails will depend on its run-time context.
@@ -574,7 +574,7 @@ following example:
     (println "  " mvars))
   (println mvars))
 
-; → {b -1, a 5}
+; => {b -1, a 5}
 ;      {e yy, d xx, b bb, a 5}
 ;        {c spam, :pat (?a ?b ?d ?c),
 ;           :it (5 bb xx spam),
@@ -619,7 +619,7 @@ as vectors (rather than as lists) and the matcher deals with either vectors or l
 
 ```clojure
 (mfind ['[isa ?f veg] food] (? f))
-; → cabbage
+; => cabbage
 ```
 
 `mfind*` takes multiple patterns:
@@ -628,7 +628,7 @@ as vectors (rather than as lists) and the matcher deals with either vectors or l
 (mfind* ['([isa ?f veg] [color ?f red])
          food]
     (? f))
-; → chilli
+; => chilli
 ```
 
 ### `mfor` and `mfor*`
@@ -652,7 +652,7 @@ following food data:
 
 ```clojure
 (mfor ['[isa ?f veg] food] (? f))
-; → (cabbage chilli radish leek)
+; => (cabbage chilli radish leek)
 ```
 
 `mfor*` takes multiple patterns:
@@ -661,7 +661,7 @@ following food data:
 (mfor* ['([isa ?f veg] [color ?f red])
         food]
     (? f))
-; → (chilli radish)
+; => (chilli radish)
 ```
 
 ## Advanced Features
@@ -681,7 +681,7 @@ The following pattern will only match `?x` against a number:
 ```clojure
 (mlet ['(??pre (-> ?x number?) ??post) '(a b 5 c d e)]
   (mout '(x= ?x  pre= ?pre  post= ?post)))
-; → (x= 5 pre= (a b) post= (c d e))
+; => (x= 5 pre= (a b) post= (c d e))
 ```
 
 When predicates fail so does the matching:
@@ -697,15 +697,15 @@ You can use multiple predicates as follows:
 ```clojure
 (mlet ['(??pre (-> ?x number? odd?) ??post) '(a b 5 c d e)]
   (mout '(x= ?x  pre= ?pre  post= ?post)))
-; → (x= 5 pre= (a b) post= (c d e))
+; => (x= 5 pre= (a b) post= (c d e))
 
 (mlet ['(??pre (-> ?x number? even?) ??post) '(a b 5 c d e)]
   (mout '(x= ?x  pre= ?pre  post= ?post)))
-; → nil
+; => nil
 ```
 
 Note that predicates allow values to be changed as they are matched. Predicates work as follows - if a match variable 
-`m` matches data `d` using predicate `p`, e.g.:
+`m` matches data `d` using predicate `p`, for example:
 
 ```clojure
 (matches '(... (-> ?m p) ...) '(... d ...))
@@ -714,21 +714,21 @@ Note that predicates allow values to be changed as they are matched. Predicates 
 Then:
 
 ```
-if p(d) = true, {m → d}   ie: the match succeeds and m is bound to d
+if p(d) = true, {m => d}   ie: the match succeeds and m is bound to d
 if p(d) = false|nil  the match fails
 ```
 
-However, if `p(d) = d2, {m → d2}` where `d2` is some new value which is not `true`, `false` or `nil` then the match 
+However, if `p(d) = d2, {m => d2}` where `d2` is some new value which is not `true`, `false` or `nil` then the match 
 variable `m` is bound to `d2` not to `d`:
 
 For example:
 
 ```clojure
-(inc 12) ; → 13
+(inc 12) ; => 13
 
 (mlet ['(start (-> ?x inc) end) '(start 5 end)]
   (? x))
-; → 6
+; => 6
 ```
 
 Use can also use this approach to bind many values using `(-> ??var predicate)`, the next example combines a few ideas, 
@@ -737,7 +737,7 @@ using an inline function definition as a predicate:
 ```clojure
 (mlet ['(start (-> ??x #(= (count %) 3)) ??rest end) '(start a b c d e end)]
   (? x))
-; → (a b c)
+; => (a b c)
 ```
 
 This facility allows the matcher to be used as a reconstructive parser - a parser which returns some constructed result 
@@ -753,7 +753,7 @@ be made in pattern collections. The following example uses `:not` to match a one
          '((p q)(x y)(q r)(y x))
         ]
   (mout '(?a ?b)))
-; → (p q)
+; => (p q)
 ```
 
 The next example uses a guard to ensure matching with even numbers only:
@@ -763,7 +763,7 @@ The next example uses a guard to ensure matching with even numbers only:
          '((a 1) (b 2) (c 3) (d 4))
         ]
   (mout '(?a ?b)))
-; → (b 2)
+; => (b 2)
 ```
 
 Note that matcher variables are scoped within `:guard` forms.
@@ -775,7 +775,7 @@ You may use multiple forms with both `:guard` and `:not` in which case they are 
          '((a 1)(x y)(b 2)(y z)(c 3)(d 4))
         ]
   (mout '(?a ?b)))
-; → (b 2)
+; => (b 2)
 ```
 
 ## Examples
@@ -850,13 +850,13 @@ Now we can use the operators:
 
 ```clojure
 (apply-op state1 (ops 'pickup))
-; → #{(holds Sue book) (place table) (at Sue table) (place bench) (at book table)}
+; => #{(holds Sue book) (place table) (at Sue table) (place bench) (at book table)}
 
 (-> state1
          (apply-op ('pickup ops))
          (apply-op ('move   ops))
          (apply-op ('drop   ops)))
-; → #{(place table) (at Sue table) (place bench) (at book table)}
+; => #{(place table) (at Sue table) (place bench) (at book table)}
 ```
 
 ## Searching Sets of Tuples
@@ -900,7 +900,7 @@ Our aim is to write code which, using the type of object descriptions from the l
 ```clojure
 (mfor ['(isa ?obj veg) food]
     (? obj))
-; → (chilli leek radish)
+; => (chilli leek radish)
 ```
 
 Wrapping this mfor expressing in a match function provides a means to obtain object names for the types of (relation value) pairs provided by the language processing subsystem:
@@ -913,22 +913,22 @@ Wrapping this mfor expressing in a match function provides a means to obtain obj
       )))
 
 (find-all '(isa veg) food)
-; → (chilli leek radish)
+; => (chilli leek radish)
 ```
 
 If the results of multiple find-all expressions are converted to sets multiple (relation value) pairs can be handled using set intersection. So to find red vegetable from the food data:
 
 ```clojure
 (find-all '(isa veg) food)
-; → (chilli leek radish)
+; => (chilli leek radish)
 
 (find-all '(color red) food)
-; → (chilli radish cherry)
+; => (chilli radish cherry)
 
 (intersection
     (set '(chilli leek radish))
     (set '(chilli radish cherry)))
-; → #{radish chilli}
+; => #{radish chilli}
 ```
 
 This processing can be captured in a function as follows:
@@ -942,7 +942,7 @@ This processing can be captured in a function as follows:
 
 (query intersection
     '((isa veg)(color red)) food)
-; → #{radish chilli}
+; => #{radish chilli}
 ```
 
 The query function may also be used with union to return "or" combinations:
@@ -950,7 +950,7 @@ The query function may also be used with union to return "or" combinations:
 ```clojure
 (query union
     '((isa veg)(color red)) food)
-; → #{cherry radish chilli leek}
+; => #{cherry radish chilli leek}
 ```
 
 To satisfy our initial aim we therefore need the following:
@@ -1014,7 +1014,7 @@ A suitable rule application mechanism needs to split the rule into its constitue
              => (grandparent ?a ?c))
   family)
 
-; → ((grandparent Ellen Tom)
+; => ((grandparent Ellen Tom)
 ;    (grandparent Rob Sam))
 ```
 
@@ -1051,7 +1051,7 @@ Given these definitions it is possible to develop a function to apply all rules 
     ))
 
 (apply-all rules1 facts1)
-; → ((heavy elephant) (heavy whale)
+; => ((heavy elephant) (heavy whale)
      (light mouse) (light sparrow))
 ```
 
@@ -1075,7 +1075,7 @@ Then develop a forward chaining/fact deduction function which continues to opera
       )))
 
 (fwd-chain rules1 (set facts1))
-; →  #{(light mouse) (heavy elephant)
+; =>  #{(light mouse) (heavy elephant)
        (on elephant sparrow)
        (squashed sparrow)
        (small sparrow) (on elephant mouse)
@@ -1159,7 +1159,7 @@ To apply this kind of operator specification we extract patterns from the operat
       )))
 
  (apply-op state1 ('pickup ops))
-; →  #{(agent R) (holds R book)
+; =>  #{(agent R) (holds R book)
        (manipulable book)
        (path table bench) (at R table)}
 ```
@@ -1168,7 +1168,7 @@ The patterns used by `mfind*` are provided dynamically when `apply-op` is called
 define the semantics of the operators.
 
 Collections of operators are conveniently held in a map, and ordered sequences of operator applications can be formed by 
-chaining `apply-op` calls, e.g.:
+chaining `apply-op` calls, for example:
 
 ```clojure
 (def ops
@@ -1203,7 +1203,7 @@ chaining `apply-op` calls, e.g.:
   (apply-op ('move   ops))
   (apply-op ('drop   ops)))
 
-; → #{(agent R) (manipulable book)
+; => #{(agent R) (manipulable book)
       (on book bench) (holds R nil)
       (at R bench) (path table bench)}
 ```
@@ -1211,7 +1211,7 @@ chaining `apply-op` calls, e.g.:
 ### Writing Dispatchers
 
 Due to the way patterns may be specified at the symbol level, `defmatch` forms can be used to specialise on keywords and 
-thereby resemble some kind of dispatch, e.g.:
+thereby resemble some kind of dispatch, for example:
 
 ```clojure
 (defmatch calcd [x y]
@@ -1220,11 +1220,11 @@ thereby resemble some kind of dispatch, e.g.:
   (:mult :=> (* x y))
   )
 
-(calcd :add 5 4)  ; →  9
-(calcd :mult 5 4) ; →  20
+(calcd :add 5 4)  ; =>  9
+(calcd :mult 5 4) ; =>  20
 ```
 
-By using predicates defmatch forms can also specialise on types and thereby dispatch on types (see the notes on predicates for more details)...
+By using predicates, `defmatch` forms can also specialise on types and thereby dispatch on types (see the notes on predicates for more details)...
 
 ```clojure
 (defmatch dispatch []
@@ -1233,9 +1233,9 @@ By using predicates defmatch forms can also specialise on types and thereby disp
   ( ?x             :=> (? x))
   )
 
-(dispatch 7)        ; →  14
-(dispatch '(a b c)) ; →  a
-(dispatch 'banana)  ; →  banana
+(dispatch 7)        ; =>  14
+(dispatch '(a b c)) ; =>  a
+(dispatch 'banana)  ; =>  banana
 ```
 
 Predicates can also modify bound values, check the next two examples. The first is a standard dispatch on types, the 
@@ -1249,9 +1249,9 @@ second uses in-pattern value modification:
   ((-> ?x symbol?) :=> 1)
   )
 
-(sizer {:a 1 :b 2 :c 3}) ; → 3
-(sizer "banana")         ; → 6
-(sizer 'banana)          ; → 1
+(sizer {:a 1 :b 2 :c 3}) ; => 3
+(sizer "banana")         ; => 6
+(sizer 'banana)          ; => 1
 ```
 
 Example using in-pattern value modification:
@@ -1264,9 +1264,9 @@ Example using in-pattern value modification:
   ((-> ?x symbol?) :=> 1)
   )
 
-(sizer {:a 1 :b 2 :c 3}) ; →  3
-(sizer "banana")         ; →  6
-(sizer '(a b c d))       ; →  4
+(sizer {:a 1 :b 2 :c 3}) ; =>  3
+(sizer "banana")         ; =>  6
+(sizer '(a b c d))       ; =>  4
 ```
 
 For our last example we use a function (could we almost start to call it a method?) which specialises on more than one of its argument types...
@@ -1279,9 +1279,9 @@ For our last example we use a function (could we almost start to call it a metho
     (((-> ?a seq?)    (-> ?b seq?))    :=> (concat (? a) (? b)))
   ))
 
-(add '(a b c) '(d e f)) ; →  (a b c d e f)
-(add 5 17)              ; →  22
-(add 5 '(1 3 9))        ; →  (6 8 14)
+(add '(a b c) '(d e f)) ; =>  (a b c d e f)
+(add 5 17)              ; =>  22
+(add 5 '(1 3 9))        ; =>  (6 8 14)
 ```
 
 ## Advanced Example: Specifying a Grammar
@@ -1295,7 +1295,7 @@ Given a sentence like "a cat chased the large rat" we want to produce a phrase s
 
 ```clojure
 (sentence '(a cat chased the large rat))
-; → (sentence (noun-phrase (det a) (noun cat))
+; => (sentence (noun-phrase (det a) (noun cat))
 ;             (verb-phrase (verb chased)
 ;                          (noun-phrase
 ;                             (det the)
@@ -1325,10 +1325,10 @@ One way of doing this is to have a set of all nouns and use a category checking 
 (defn noun [x] (check-category 'noun x nouns))
 
 (noun 'cat)
-; → (noun cat)
+; => (noun cat)
 
 (noun 'thirteen)    ;; returns nil if it fails
-; → nil
+; => nil
 ```
 
 We can do something similar for other categories of word:
@@ -1346,11 +1346,11 @@ We can do something similar for other categories of word:
 (defn det [x] (check-category 'det x dets))
 (defn adj [x] (check-category 'adj x adjs))
 
-(noun 'thirteen) → nil
+(noun 'thirteen) => nil
 
-(det 'every) → (det every)
-(adj 'every) → nil
-(adj 'small) → (adj small)
+(det 'every) => (det every)
+(adj 'every) => nil
+(adj 'small) => (adj small)
 ```
 
 ### Non-Terminal Categories
@@ -1361,11 +1361,11 @@ words). The matcher allows predicates to be used to enforce restrictions on matc
 ```clojure
 (mlet ['(??a ?x ??b) '(a b c 10 d e f)]
     (mout '((a ?a)(b ?b)(x ?x))))
-→ ((a ()) (b (b c 10 d e f)) (x a))
+=> ((a ()) (b (b c 10 d e f)) (x a))
 
 (mlet ['(??a (-> ?x number?) ??b) '(a b c 10 d e f)]
     (mout '((a ?a)(b ?b)(x ?x))))
-→ ((a (a b c)) (b (d e f)) (x 10))
+=> ((a (a b c)) (b (d e f)) (x 10))
 ```
 
 If we use some variation of a predicate which returns something other than true to indicate success, the matcher binds this non-nil value to the relevant match variable. For example...
@@ -1375,13 +1375,13 @@ If we use some variation of a predicate which returns something other than true 
   (and (number? x)
     (* x x)))
 
-(nsquare? 'banana) → nil
+(nsquare? 'banana) => nil
 
-(nsquare? 10) → 100
+(nsquare? 10) => 100
 
 (mlet ['(??a (-> ?x nsquare?) ??b) '(a b c 10 d e f)]
     (mout '((a ?a)(b ?b)(x ?x))))
-→ ((a (a b c)) (b (d e f)) (x 100))
+=> ((a (a b c)) (b (d e f)) (x 100))
 ```
 
 We can use this to build parse expressions for our non-terminal categories.
@@ -1389,19 +1389,19 @@ We can use this to build parse expressions for our non-terminal categories.
 ```clojure
 (mlet ['((-> ?d det) (-> ?n noun)) '(the cat)]
    (mout '(noun-phrase ?d ?n)))
-→ (noun-phrase (det the) (noun cat))
+=> (noun-phrase (det the) (noun cat))
 
 (defmatch noun-phrase []
   (((-> ?d det) (-> ?n noun)) :=> (mout '(noun-phrase ?d ?n))))
 
 (noun-phrase '(the cat))
-→ (noun-phrase (det the) (noun cat))
+=> (noun-phrase (det the) (noun cat))
 
 (noun-phrase '(kipper melon))
-→ nil
+=> nil
 ```
 
-There is no problem with defining multiple noun-phrase rules because it is a defmatch form...
+There is no problem with defining multiple noun-phrase rules because it is a `defmatch` form:
 
 ```clojure
 (defmatch noun-phrase []
@@ -1410,13 +1410,13 @@ There is no problem with defining multiple noun-phrase rules because it is a def
   )
 
 (noun-phrase '(a large cat))
-→ (noun-phrase (det a) (adj large) (noun cat))
+=> (noun-phrase (det a) (adj large) (noun cat))
 
 (noun-phrase '(every small kipper))
-→ (noun-phrase (det every) (adj small) (noun kipper))
+=> (noun-phrase (det every) (adj small) (noun kipper))
 
 (noun-phrase '(the melon))
-→ (noun-phrase (det the) (noun melon))
+=> (noun-phrase (det the) (noun melon))
 ```
 
 Now we define another couple of forms to build on noun-phrase...
@@ -1432,7 +1432,7 @@ Now we define another couple of forms to build on noun-phrase...
 
 
 (sentence '(the large cat ate a small kipper))
-→ (sentence (noun-phrase (det the) (adj large) (noun cat))
+=> (sentence (noun-phrase (det the) (adj large) (noun cat))
             (verb-phrase (verb ate)
                 (noun-phrase (det a) (adj small) (noun kipper))))
 ```
