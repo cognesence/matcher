@@ -15,8 +15,8 @@
 + [General Principles](#general-principles)
     - [Patterns](#patterns)
     - [Matcher Variables](#matcher-variables)
-    - [?](#?)
-    - [:=>](#:=>)
+    - [The Semantics of `?`](#the-semantics-of-)
+    - [Being Explicit with `:=>`](#being-explicit-with-)
 + [Binding](#binding)
     - [mlet](#mlet)
 + Matched Output
