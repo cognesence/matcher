@@ -37,12 +37,12 @@
 + [Advanced Features](#advanced-features)
     - [Predicates in Patterns](#predicates-in-patterns)
     - [`:not` and `:guard`](#not-and-guard)
-+ Examples
-    - Searching Sets of Tuples
-    - Applying Rules
-    - Applying State Changing Operators
-    - Writing Dispatchers
-    - Specifying a Grammar
++ [Examples](#examples)
+    - [Searching Sets of Tuples](#searching-sets-of-tuples)
+    - [Applying Rules](#applying-rules)
+    - [Applying State Changing Operators](#applying-state-changing-operators)
+    - [Writing Dispatchers](#writing-dispatchers)
+    - [Specifying a Grammar](#specifyig-a-grammar)
 
 ## Getting Started
 
@@ -778,30 +778,39 @@ You may use multiple forms with both `:guard` and `:not` in which case they are 
 ; → (b 2)
 ```
 
-a fuller example
-This provides an alternative to the example used in the section on state-changing operators. We recommend you read that first.
+## Examples
 
-This approach uses predicates, :not and :guard to provide an alternative set of state changing operators.
+### A Fuller Example
 
-We consider this kind of stste definition...
+This provides an alternative to the example used in the section on state-changing operators. We recommend you read that 
+first.
 
+This approach uses predicates, `:not` and `:guard` to provide an alternative set of state changing operators.
+
+We consider this kind of state definition:
+
+```clojure
 (def state1
   '#{(at Sue table)
      (at book table)
      (place table)
      (place bench)
      })
+```
 
-For convenience we use some definitions...
+For convenience we use some definitions:
 
+```clojure
 (def agents '#{Sue Sam})
 (def manipulables '#{book cup})
 
 (defn agent? [x] (agents x))
 (defn manipulable? [x] (manipulables x))
+```
 
-Now we define operators using predicates, :not & :guard...
+Now we define operators using predicates, `:not` and `:guard`:
 
+```clojure
 (def ops
   '{pickup {:pre ( (at (-> ?agent agent?)      ?place)
                    (at (-> ?obj  manipulable?) ?place)
@@ -824,52 +833,56 @@ Now we define operators using predicates, :not & :guard...
              :del ((at ?agent ?p1))
              }
     })
+```
 
+`apply-op` is the same as in the other state-changing examples:
 
-apply-op is the same as in the other state-changing examples...
-
+```clojure
 (defn apply-op
   [state {:keys [pre add del]}]
   (mfind* [pre state]
     (union (mout add)
       (difference state (mout del))
       )))
+```
 
+Now we can use the operators:
 
-Now we can use the operators...
-
+```clojure
 (apply-op state1 (ops 'pickup))
-→  #{(holds Sue book) (place table) (at Sue table) (place bench) (at book table)}
-
+; → #{(holds Sue book) (place table) (at Sue table) (place bench) (at book table)}
 
 (-> state1
          (apply-op ('pickup ops))
          (apply-op ('move   ops))
          (apply-op ('drop   ops)))
-→  #{(place table) (at Sue table) (place bench) (at book table)}
+; → #{(place table) (at Sue table) (place bench) (at book table)}
+```
 
+## Searching Sets of Tuples
 
+This example considers searching for objects in a set of tuples which describe the state of a micro-world. To put this 
+in context: we receive object descriptions (and other forms) from language processing subsystem so, for example, the 
+noun-phrase "red fruit" would produce:
 
-
-
-
-example: searching sets of tuples
-
-This example considers searching for objects in a set of tuples which describe the state of a micro-world. To put this in context: we receive object descriptions (and other forms) from language processing subsystem so, for example, the noun-phrase "red fruit" would produce...
-
+```clojure
 (obj
   (quantifier all)
   (desc ((color red) (isa fruit))))
+```
 
-...and the phrase "a large red fruit" would produce...
+And the phrase "a large red fruit" would produce:
 
+```clojure
 (obj
   (quantifier any)
   (desc
     ((size large) (color red) (isa fruit))))
+```
 
 We store state information in the following form...
 
+```clojure
 (def food
   '#{[isa chilli veg]    [isa cherry fruit]
      [isa radish veg]    [isa apple fruit]
@@ -880,15 +893,19 @@ We store state information in the following form...
      [on chilli table]   [on cherry table]
      [on leek table]
      })
+```
 
 Our aim is to write code which, using the type of object descriptions from the language processing subsystem, can retrieve the relevant object names. We can use mfor to find the names of objects for a single type of fact/tuple. For example, the following form returns the names of all cubes:
 
+```clojure
 (mfor ['(isa ?obj veg) food]
     (? obj))
-→ (chilli leek radish)
+; → (chilli leek radish)
+```
 
 Wrapping this mfor expressing in a match function provides a means to obtain object names for the types of (relation value) pairs provided by the language processing subsystem:
 
+```clojure
 (defmatch find-all [tuples]
   ([?reln ?val]
     (mfor ['(?reln ?obj ?val) tuples]
@@ -896,23 +913,27 @@ Wrapping this mfor expressing in a match function provides a means to obtain obj
       )))
 
 (find-all '(isa veg) food)
-→ (chilli leek radish)
+; → (chilli leek radish)
+```
 
 If the results of multiple find-all expressions are converted to sets multiple (relation value) pairs can be handled using set intersection. So to find red vegetable from the food data:
 
+```clojure
 (find-all '(isa veg) food)
-→ (chilli leek radish)
+; → (chilli leek radish)
 
 (find-all '(color red) food)
-→ (chilli radish cherry)
+; → (chilli radish cherry)
 
 (intersection
     (set '(chilli leek radish))
     (set '(chilli radish cherry)))
-→ #{radish chilli}
+; → #{radish chilli}
+```
 
 This processing can be captured in a function as follows:
 
+```clojure
 (defn query
   [reduction pairs tuples]
   (reduce reduction
@@ -921,16 +942,20 @@ This processing can be captured in a function as follows:
 
 (query intersection
     '((isa veg)(color red)) food)
-→ #{radish chilli}
+; → #{radish chilli}
+```
 
 The query function may also be used with union to return "or" combinations:
 
+```clojure
 (query union
     '((isa veg)(color red)) food)
-→ #{cherry radish chilli leek}
+; → #{cherry radish chilli leek}
+```
 
-To satisfy our initial aim we therefore need the following...
+To satisfy our initial aim we therefore need the following:
 
+```clojure
 (defmatch find-all [tuples]
   ([?reln ?val]
     (mfor ['(?reln ?obj ?val) tuples]
@@ -942,25 +967,30 @@ To satisfy our initial aim we therefore need the following...
   (reduce reduction
     (map #(set (find-all % tuples)) pairs))
   )
+```
 
+### Applying Rules
 
+This example considers a rule-based, fact deduction or forward chaining mechanism. Facts are held as tuples and rules 
+have antecedents and consequents. Some introductory texts for Artificial Intelligence provide example rules like:
 
-
-
-
-example: applying rules
-
-This example considers a rule-based, fact deduction or forward chaining mechanism. Facts are held as tuples and rules have antecedents and consequents. Some introductory texts for Artificial Intelligence provide example rules like...
-
+```
 IF (has fido hair) THEN (isa fido mammal)
+```
 
-...while these serve to illustrate their discussion of rule-based inference, rules like this are of limited use because they are specific to object names ("fido" in this case) and take only a single antecedent and consequent. For practical purposes rules need to be flexible about the length of their antecedents/consequents and allow both to include variables. For our work we wish to use rules like the following...
+While these serve to illustrate their discussion of rule-based inference, rules like this are of limited use because 
+they are specific to object names ("fido" in this case) and take only a single antecedent and consequent. For practical 
+purposes rules need to be flexible about the length of their antecedents/consequents and allow both to include 
+variables. For our work we wish to use rules like the following:
 
+```clojure
 (rule 15 (parent ?a ?b) (parent ?b ?c)
       => (grandparent ?a ?c))
+```
 
-...which would work on data like...
+Which would work on data like:
 
+```clojure
 (def family
   '( (parent Sarah Tom)
      (parent Steve Joe)
@@ -968,9 +998,11 @@ IF (has fido hair) THEN (isa fido mammal)
      (parent Ellen Sarah)
      (parent Emma  Bill)
      (parent Rob   Sally)))
+```
 
 A suitable rule application mechanism needs to split the rule into its constituent parts; search for all consistent sets of antecedents; ripple any antecedent variable bindings through to consequents and collect evaluated consequents for each rule every time it fires. In practice these requirements can be by using a match function to pull a rule apart, mfor* to satisfy all possible antecedent combinations and mout to bind variables into consequents. This can be specified as follows...
 
+```clojure
 (defmatch apply-rule [facts]
   ((rule ?n ??antecedents => ??consequents)
     :=> (mfor* [(? antecedents) facts]
@@ -982,13 +1014,18 @@ A suitable rule application mechanism needs to split the rule into its constitue
              => (grandparent ?a ?c))
   family)
 
-→ ((grandparent Ellen Tom)
-   (grandparent Rob Sam))
+; → ((grandparent Ellen Tom)
+;    (grandparent Rob Sam))
+```
 
-Notice that while the pattern for defmatch is literally specified, the patterns for mfor* and mout must, necessarily, be generated dynamically. Furthermore these dynamically generated patterns are embedded in the rule structure pulled apart by defmatch's literal pattern.
+Notice that while the pattern for `defmatch` is literally specified, the patterns for `mfor*` and `mout` must, 
+necessarily, be generated dynamically. Furthermore these dynamically generated patterns are embedded in the rule 
+structure pulled apart by `defmatch`'s literal pattern.
 
-To investigate this rule deduction example further we use a richer set of facts and rules (where the consequences of some rules trigger the antecedents of others)...
+To investigate this rule deduction example further we use a richer set of facts and rules (where the consequences of 
+some rules trigger the antecedents of others):
 
+```clojure
 (def facts1
   '((big elephant)  (small mouse)
     (small sparrow) (big whale)
@@ -1003,27 +1040,33 @@ To investigate this rule deduction example further we use a richer set of facts 
      (rule 2 (light ?x) => (portable ?x))
      (rule 3 (small ?x) => (light ?x))
      ))
+```
 
-Given these definitions it is possible to develop a function to apply all rules once...
+Given these definitions it is possible to develop a function to apply all rules once:
 
+```clojure
 (defn apply-all [rules facts]
   (reduce concat
     (map #(apply-rule % facts) rules)
     ))
 
 (apply-all rules1 facts1)
-→ ((heavy elephant) (heavy whale)
-   (light mouse) (light sparrow))
+; → ((heavy elephant) (heavy whale)
+     (light mouse) (light sparrow))
+```
 
-For simplicity in combining the output of rules we use sets so modify the apply-all function a little...
+For simplicity in combining the output of rules we use sets so modify the `apply-all` function a little:
 
+```clojure
 (defn apply-all [rules facts]
   (set (reduce concat
          (map #(apply-rule % facts) rules)
          )))
+```
 
-...then develop a forward chaining/fact deduction function which continues to operate while it is generating new facts...
+Then develop a forward chaining/fact deduction function which continues to operate while it is generating new facts:
 
+```clojure
 (defn fwd-chain [rules facts]
   (let [new-facts (apply-all rules facts)]
     (if (subset? new-facts facts)
@@ -1032,18 +1075,21 @@ For simplicity in combining the output of rules we use sets so modify the apply-
       )))
 
 (fwd-chain rules1 (set facts1))
-→  #{(light mouse) (heavy elephant)
-     (on elephant sparrow)
-     (squashed sparrow)
-     (small sparrow) (on elephant mouse)
-     (squashed mouse) (small mouse)
-     (portable sparrow) (big whale)
-     (portable mouse) (big elephant)
-     (sad elephant) (light sparrow)
-     (heavy whale)}
+; →  #{(light mouse) (heavy elephant)
+       (on elephant sparrow)
+       (squashed sparrow)
+       (small sparrow) (on elephant mouse)
+       (squashed mouse) (small mouse)
+       (portable sparrow) (big whale)
+       (portable mouse) (big elephant)
+       (sad elephant) (light sparrow)
+       (heavy whale)}
+```
 
-As with the other examples, the matcher performs most of the processing (in this case using a defmatch construct and mfor* in apply-rule) while other functions collate results, etc.
+As with the other examples, the matcher performs most of the processing (in this case using a `defmatch` construct and 
+`mfor*` in `apply-rule`) while other functions collate results, etc.
 
+```clojure
 (defmatch apply-rule [facts]
   ((rule ?n ??antecedents => ??consequents)
     :=> (mfor* [(? antecedents) facts]
@@ -1061,16 +1107,17 @@ As with the other examples, the matcher performs most of the processing (in this
       facts
       (recur rules (union facts new-facts))
       )))
+```
 
+### Applying State Changing Operators
 
+In this example we consider how to apply the kind of state changing operators that are used in some planning systems. 
+Broadly we adapt a representation borrowed from PDDL for use with a STRIPS style solver. The operators are specified in 
+terms of their preconditions and their effects. We use tuples to capture state information. The following tuples, for 
+example, describe a simple state in which some animated agent `R` is at a table is holding nothing and a book is on 
+the table.
 
-
-
-
-example: applying state changing operators
-
-In this example we consider how to apply the kind of state changing operators that are used in some planning systems. Broadly we adapt a representation borrowed from PDDL for use with a STRIPS style solver. The operators are specified in terms of their preconditions and their effects. We use tuples to capture state information. The following tuples, for example, describe a simple state in which some (animated) agent (R) is at a table is holding nothing and a book is on the table.
-
+```clojure
 #{(at R table)
   (on book table)
   (holds R nil)
@@ -1078,9 +1125,11 @@ In this example we consider how to apply the kind of state changing operators th
   (manipulable book)
   (agent R)
   }
+```
 
 In order to generalise an operator (so it can be used with different agents, objects and in various locations) it is necessary to specify it using variables, in this case matcher variables. An operator which describes a "pickup" activity for an agent and which can be used to produces a new state (new tuples) could be described as follows...
 
+```clojure
   {:pre ((agent ?agent)
          (manipulable ?obj)
          (at ?agent ?place)
@@ -1091,11 +1140,17 @@ In order to generalise an operator (so it can be used with different agents, obj
    :del ((on ?obj   ?place)
          (holds ?agent nil))
    }
+```
 
-The operator is map with three components (i) a set of preconditions which must be satisfied in order for the operator to be used (ii) a set of tuples to add to an existing state when producing a new state and (iii) a set of tuples to delete from an existing state.
+The operator is map with three components:
+
+1. A set of preconditions which must be satisfied in order for the operator to be used. 
+2. A set of tuples to add to an existing state when producing a new state. 
+3. A set of tuples to delete from an existing state.
 
 To apply this kind of operator specification we extract patterns from the operator then use mfind*
 
+```clojure
 (defn apply-op
   [state {:keys [pre add del]}]
   (mfind* [pre state]
@@ -1104,14 +1159,18 @@ To apply this kind of operator specification we extract patterns from the operat
       )))
 
  (apply-op state1 ('pickup ops))
- →  #{(agent R) (holds R book)
-      (manipulable book)
-      (path table bench) (at R table)}
+; →  #{(agent R) (holds R book)
+       (manipulable book)
+       (path table bench) (at R table)}
+```
 
-The patterns used by mfind* are provided dynamically when apply-op is called and furthermore the patterns themselves define the semantics of the operators.
+The patterns used by `mfind*` are provided dynamically when `apply-op` is called and furthermore the patterns themselves 
+define the semantics of the operators.
 
-Collections of operators are conveniently held in a map, and ordered sequences of operator applications can be formed by chaining apply-op calls, eg:
+Collections of operators are conveniently held in a map, and ordered sequences of operator applications can be formed by 
+chaining `apply-op` calls, e.g.:
 
+```clojure
 (def ops
   '{pickup {:pre ((agent ?agent)
                   (manipulable ?obj)
@@ -1144,43 +1203,45 @@ Collections of operators are conveniently held in a map, and ordered sequences o
   (apply-op ('move   ops))
   (apply-op ('drop   ops)))
 
-→ #{(agent R) (manipulable book)
-    (on book bench) (holds R nil)
-    (at R bench) (path table bench)}
+; → #{(agent R) (manipulable book)
+      (on book bench) (holds R nil)
+      (at R bench) (path table bench)}
+```
 
+### Writing Dispatchers
 
+Due to the way patterns may be specified at the symbol level, `defmatch` forms can be used to specialise on keywords and 
+thereby resemble some kind of dispatch, e.g.:
 
-
-
-
-writing dispatchers
-
-Due to the way patterns may be specified at the symbol level, defmatch forms can be used to specialise on keywords and thereby resemble some kind of dispatch, e.g.
-
+```clojure
 (defmatch calcd [x y]
   (:add  :=> (+ x y))
   (:subt :=> (- x y))
   (:mult :=> (* x y))
   )
 
-(calcd :add 5 4)  →  9
-(calcd :mult 5 4) →  20
+(calcd :add 5 4)  ; →  9
+(calcd :mult 5 4) ; →  20
+```
 
 By using predicates defmatch forms can also specialise on types and thereby dispatch on types (see the notes on predicates for more details)...
 
+```clojure
 (defmatch dispatch []
   ((-> ?x number?) :=> (* 2 (? x)))
   ((-> ?x seq?)    :=> (first (? x)))
   ( ?x             :=> (? x))
   )
 
-(dispatch 7)  →  14
-(dispatch '(a b c))  →  a
-(dispatch 'banana)   →  banana
+(dispatch 7)        ; →  14
+(dispatch '(a b c)) ; →  a
+(dispatch 'banana)  ; →  banana
+```
 
+Predicates can also modify bound values, check the next two examples. The first is a standard dispatch on types, the 
+second uses in-pattern value modification:
 
-Predicates can also modify bound values, check the next 2 examples. The first is a standard dispatch on types, the second uses in-pattern value modification...
-
+```clojure
 (defmatch sizer []
   ((-> ?x map?)    :=> (-> (? x) keys count))
   ((-> ?x coll?)   :=> (count (? x)))
@@ -1188,27 +1249,29 @@ Predicates can also modify bound values, check the next 2 examples. The first is
   ((-> ?x symbol?) :=> 1)
   )
 
-(sizer {:a 1 :b 2 :c 3})   →  3
-(sizer "banana")  →  6
-(sizer 'banana)   →  1
+(sizer {:a 1 :b 2 :c 3}) ; → 3
+(sizer "banana")         ; → 6
+(sizer 'banana)          ; → 1
+```
 
+Example using in-pattern value modification:
 
-Example using in-pattern value modification...
-
+```clojure
 (defmatch sizer []
   ((-> ?x map? keys count) :=> (? x))
-  ((-> ?x coll?   count)   :=> (? x))
-  ((-> ?x string? count)   :=> (? x))
+  ((-> ?x coll? count) :=> (? x))
+  ((-> ?x string? count) :=> (? x))
   ((-> ?x symbol?) :=> 1)
   )
 
-(sizer {:a 1 :b 2 :c 3})  →  3
-(sizer "banana")    →  6
-(sizer '(a b c d))  →  4
-
+(sizer {:a 1 :b 2 :c 3}) ; →  3
+(sizer "banana")         ; →  6
+(sizer '(a b c d))       ; →  4
+```
 
 For our last example we use a function (could we almost start to call it a method?) which specialises on more than one of its argument types...
 
+```clojure
 (defn add [& args]
   (mcond [args]
     (((-> ?a number?) (-> ?b number?)) :=> (+ (? a) (? b)))
@@ -1216,39 +1279,42 @@ For our last example we use a function (could we almost start to call it a metho
     (((-> ?a seq?)    (-> ?b seq?))    :=> (concat (? a) (? b)))
   ))
 
-(add '(a b c) '(d e f))  →  (a b c d e f)
-(add 5 17)        →  22
-(add 5 '(1 3 9))  →  (6 8 14)
+(add '(a b c) '(d e f)) ; →  (a b c d e f)
+(add 5 17)              ; →  22
+(add 5 '(1 3 9))        ; →  (6 8 14)
+```
 
+## Advanced Example: Specifying a Grammar
 
+Grammars can be used to generate "sentences" or to produce phrase-structures (parse trees) from strings of words. This 
+example investigates the latter, using the matcher to define the grammar rules.
 
+### The Problem
 
+Given a sentence like "a cat chased the large rat" we want to produce a phrase structure tree something like:
 
-
-
-specifying a grammar with the matcher
-
-Grammars can be used to generate "sentences" or to produce phrase-structures (parse trees) from strings of words. This example investigates the latter, using the matcher to define the grammar rules.
-
-the problem...
-given a sentence like "a cat chased the large rat" we want to produce a phrase structure tree something like...
-
+```clojure
 (sentence '(a cat chased the large rat))
-→ (sentence (noun-phrase (det a) (noun cat))
-            (verb-phrase (verb chased)
-                         (noun-phrase
-                            (det the)
-                            (adj large)
-                            (noun rat))))
+; → (sentence (noun-phrase (det a) (noun cat))
+;             (verb-phrase (verb chased)
+;                          (noun-phrase
+;                             (det the)
+;                             (adj large)
+;                             (noun rat))))
+```
 
-simple categories
-We can deal with individual words fairly easily, for example if "cat" is a noun then parsing the word "cat" on its own should return...
+### Simple Categories
 
+We can deal with individual words fairly easily, for example if "cat" is a noun then parsing the word "cat" on its own 
+should return:
+
+```clojure
 (cat noun)
+```
 
-One way of doing this is to have a set of all nouns & use a category checking function...
+One way of doing this is to have a set of all nouns and use a category checking function:
 
-
+```clojure
 (def nouns '#{cat bat rat kipper melon})
 
 (defn check-category [cat-name word word-set]
@@ -1259,12 +1325,15 @@ One way of doing this is to have a set of all nouns & use a category checking fu
 (defn noun [x] (check-category 'noun x nouns))
 
 (noun 'cat)
-→ (noun cat)
+; → (noun cat)
 
 (noun 'thirteen)    ;; returns nil if it fails
-→ nil
-We can do something similar for other categories of word...
+; → nil
+```
 
+We can do something similar for other categories of word:
+
+```clojure
 ;; word definitions
 (def nouns '#{cat bat rat kipper melon})
 (def verbs '#{ate chased})
@@ -1282,10 +1351,14 @@ We can do something similar for other categories of word...
 (det 'every) → (det every)
 (adj 'every) → nil
 (adj 'small) → (adj small)
+```
 
-non-terminal categories
-We need a different style of solution for non-terminal categories like noun-phrases (which are made up of multiple words). The matcher allows predicates to be used to enforce restrictions on match patterns...
+### Non-Terminal Categories
 
+We need a different style of solution for non-terminal categories like noun-phrases (which are made up of multiple 
+words). The matcher allows predicates to be used to enforce restrictions on match patterns:
+
+```clojure
 (mlet ['(??a ?x ??b) '(a b c 10 d e f)]
     (mout '((a ?a)(b ?b)(x ?x))))
 → ((a ()) (b (b c 10 d e f)) (x a))
@@ -1293,9 +1366,11 @@ We need a different style of solution for non-terminal categories like noun-phra
 (mlet ['(??a (-> ?x number?) ??b) '(a b c 10 d e f)]
     (mout '((a ?a)(b ?b)(x ?x))))
 → ((a (a b c)) (b (d e f)) (x 10))
+```
 
 If we use some variation of a predicate which returns something other than true to indicate success, the matcher binds this non-nil value to the relevant match variable. For example...
 
+```clojure
 (defn nsquare? [x]
   (and (number? x)
     (* x x)))
@@ -1307,9 +1382,11 @@ If we use some variation of a predicate which returns something other than true 
 (mlet ['(??a (-> ?x nsquare?) ??b) '(a b c 10 d e f)]
     (mout '((a ?a)(b ?b)(x ?x))))
 → ((a (a b c)) (b (d e f)) (x 100))
+```
 
 We can use this to build parse expressions for our non-terminal categories.
 
+```clojure
 (mlet ['((-> ?d det) (-> ?n noun)) '(the cat)]
    (mout '(noun-phrase ?d ?n)))
 → (noun-phrase (det the) (noun cat))
@@ -1322,9 +1399,11 @@ We can use this to build parse expressions for our non-terminal categories.
 
 (noun-phrase '(kipper melon))
 → nil
+```
 
 There is no problem with defining multiple noun-phrase rules because it is a defmatch form...
 
+```clojure
 (defmatch noun-phrase []
   (((-> ?d det) (-> ?n noun))             :=> (mout '(noun-phrase ?d ?n)))
   (((-> ?d det) (-> ?a adj) (-> ?n noun)) :=> (mout '(noun-phrase ?d ?a ?n)))
@@ -1338,9 +1417,11 @@ There is no problem with defining multiple noun-phrase rules because it is a def
 
 (noun-phrase '(the melon))
 → (noun-phrase (det the) (noun melon))
+```
 
- Now we define another couple of forms to build on noun-phrase...
+Now we define another couple of forms to build on noun-phrase...
 
+```clojure
 ;; sentence rule
 (defmatch sentence []
   (((-> ??np noun-phrase) (-> ??vp verb-phrase)) :=> (mout '(sentence ?np ?vp))))
@@ -1354,9 +1435,11 @@ There is no problem with defining multiple noun-phrase rules because it is a def
 → (sentence (noun-phrase (det the) (adj large) (noun cat))
             (verb-phrase (verb ate)
                 (noun-phrase (det a) (adj small) (noun kipper))))
+```
 
-the finished work...
+The finished work:
 
+```clojure
 ;; sentence rule
 (defmatch sentence []
   (((-> ??np noun-phrase) (-> ??vp verb-phrase)) :=> (mout '(sentence ?np ?vp))))
@@ -1393,6 +1476,4 @@ the finished work...
   (and (word-set word)
     (list cat-name word)
     ))
-
-
-
+```
