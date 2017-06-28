@@ -101,7 +101,7 @@ match against zero or more elements of data (these are prefixed with `??`). Mult
        '(mango melon x apple pear berry)]
   (mout '(pre= ?pre post= ??post)))
 ; => (pre= (mango melon)
-;     post= apple pear berry)
+;     post= (apple pear berry))
 ```
 
 All patterns may be structured, containing sequences and subsequences (and maps within sequences within maps within
@@ -426,7 +426,7 @@ structure:
        '(mango melon x apple pear berry)]
   (mout '(pre= ?pre post= ??post)))
 ; => (pre= (mango melon)
-;     post= apple pear berry)
+;     post= (apple pear berry))
 ```
 
 `mout` also allows `:eval` directives to evaluate Clojure code at mout expansion time. This is usually used to 
