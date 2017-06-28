@@ -31,13 +31,11 @@
 + [The Matcher Namespace](#the-matcher-namespace)
     - [`mvars` and `with-mvars`](#mvars-and-with-mvars)
     - [`:it`](#it)
-+ Searching and Selection
-    - mfind
-    - mfind\*
-    - mfor
-    - mfor\*
-+ Advanced Features
-    - Predicates in Patterns
++ [Searching and Selection](#searching-and-selection)
+    - [`mfind` and `mfind*`](#mfind-and-mfind)
+    - [`mfor` and `mfor*`](#mfor-and-mfor)
++ [Advanced Features](#advanced-features)
+    - [Predicates in Patterns](#predicates-in-patterns)
     - :not and :guard
 + Examples
     - Searching Sets of Tuples
@@ -595,10 +593,15 @@ While direct reference to `mvars` is generally unnecessary, it is useful for wri
 results of successful matching operations to be saved for later processing or passed to other functions in cases where 
 the lexical scoping of matcher variables is found restrictive.
 
-`mfind` and `mfind*`
+## Searching and Selection
 
-The searching and selection forms, mfind & mfind*, match patterns across collections of data, returning the first match which is found. mfind matches one pattern across a collection of data and mfind* consistently matches a group of patterns across a collection of data. The next two examples use the following data:
+### `mfind` and `mfind*`
 
+The searching and selection forms, `mfind` and `mfind*`, match patterns across collections of data, returning the first 
+match which is found. `mfind` matches one pattern across a collection of data and `mfind*` consistently matches a group 
+of patterns across a collection of data. The next two examples use the following data:
+
+```clojure
 (def food
  '([isa cherry  fruit]   [isa cabbage veg]
    [isa chilli  veg]     [isa apple   fruit]
@@ -607,29 +610,34 @@ The searching and selection forms, mfind & mfind*, match patterns across collect
    [color apple green]   [color cherry  red]
    [color cabbage green] [color radish red]
   ))
+```
 
-Note that in this example we use vectors in our data, this is perhaps idiomatic but we sometimes prefer wrapping tuples as vectors (rather than as lists) and the matcher deals with either vectors or lists (or maps).
+Note that in this example we use vectors in our data, this is perhaps idiomatic but we sometimes prefer wrapping tuples 
+as vectors (rather than as lists) and the matcher deals with either vectors or lists (or maps).
 
-mfind takes one pattern:
+`mfind` takes one pattern:
 
+```clojure
 (mfind ['[isa ?f veg] food] (? f))
-→ cabbage
+; → cabbage
+```
 
-mfind* takes multiple patterns:
+`mfind*` takes multiple patterns:
 
+```clojure
 (mfind* ['([isa ?f veg] [color ?f red])
          food]
     (? f))
-→ chilli
+; → chilli
+```
 
+### `mfor` and `mfor*`
 
+The matcher supports two forms to provide iteration and collection capability, these are called `mfor` and `mfor*`. They
+iterate over sets of data using one pattern (`mfor`) or multiple patterns (`mfor*`). The following examples use the 
+following food data:
 
-
-
-
-mfor & mfor*
-The matcher supports two forms to provide iteration and collection capability, these are called mfor and mfor*. They iterate over sets of data using one pattern (mfor) or multiple patterns (mfor*). The following examples use the following food data:
-
+```clojure
 (def food
  '([isa cherry  fruit]   [isa cabbage veg]
    [isa chilli  veg]     [isa apple   fruit]
@@ -638,80 +646,102 @@ The matcher supports two forms to provide iteration and collection capability, t
    [color apple green]   [color cherry  red]
    [color cabbage green] [color radish red]
   ))
+```
 
+`mfor` takes one pattern:
 
-mfor takes one pattern:
-
+```clojure
 (mfor ['[isa ?f veg] food] (? f))
-→ (cabbage chilli radish leek)
+; → (cabbage chilli radish leek)
+```
 
+`mfor*` takes multiple patterns:
 
-mfor* takes multiple patterns:
-
+```clojure
 (mfor* ['([isa ?f veg] [color ?f red])
         food]
     (? f))
-→ (chilli radish)
+; → (chilli radish)
+```
 
+## Advanced Features
 
+### Predicates in Patterns
 
+Patterns may associate predicates with match variables inside the patterns which use them. This allows potential match 
+bindings to be validated and causes matches to fail if the predicates are not satisfied. The syntax for specifying a 
+predicate is:
 
-
-
-predicates in patterns
-Patterns may associate predicates with match variables inside the patterns which use them. This allows potential match bindings to be validated and causes matches to fail if the predicates are not satisfied. The syntax for specifying a predicate is...
+```clojure
 (-> ?match-var predicates)
+```
 
+The following pattern will only match `?x` against a number:
 
-The following pattern will only match ?x against a number...
-
+```clojure
 (mlet ['(??pre (-> ?x number?) ??post) '(a b 5 c d e)]
   (mout '(x= ?x  pre= ?pre  post= ?post)))
-→ (x= 5 pre= (a b) post= (c d e))
+; → (x= 5 pre= (a b) post= (c d e))
+```
 
-When predicates fail so does the matching...
+When predicates fail so does the matching:
 
+```clojure
 (mlet ['(??pre (-> ?x number?) ??post) '(a b c d e)]
   (mout '(x= ?x  pre= ?pre  post= ?post)))
-→ nil
+; nil
+```
 
 You can use multiple predicates as follows...
 
+```clojure
 (mlet ['(??pre (-> ?x number? odd?) ??post) '(a b 5 c d e)]
   (mout '(x= ?x  pre= ?pre  post= ?post)))
-→ (x= 5 pre= (a b) post= (c d e))
+; → (x= 5 pre= (a b) post= (c d e))
 
 (mlet ['(??pre (-> ?x number? even?) ??post) '(a b 5 c d e)]
   (mout '(x= ?x  pre= ?pre  post= ?post)))
-→ nil
+; → nil
+```
 
-Note that predicates allow values to be changed as they are matched. Predicates work as follows:
-if a match variable m matches data d using predicate p, eg:
+Note that predicates allow values to be changed as they are matched. Predicates work as follows - if a match variable 
+`m` matches data `d` using predicate `p`, e.g.:
 
+```clojure
 (matches '(... (-> ?m p) ...) '(... d ...))
+```
 
-then...
+Then:
+
+```clojure
 if p(d) = true, {m → d}   ie: the match succeeds & m is bound to d
 if p(d) = false|nil  the match fails
+```
 
-but...
-if p(d) = d2, {m → d2} where d2 is some new value which is not true, false or nil then the match variable m is bound to d2 not to d
+However, if `p(d) = d2, {m → d2}` where `d2` is some new value which is not `true`, `false` or `nil` then the match 
+variable `m` is bound to `d2` not to `d`:
 
-eg:
+For example:
 
-(inc 12) → 13
+```clojure
+(inc 12) ; → 13
 
 (mlet ['(start (-> ?x inc) end) '(start 5 end)]
   (? x))
-→ 6
+; → 6
+```
 
-Use can also use this approach to bind many values using (-> ??var predicate), the next example combines a few ideas, using an inline function definition as a predicate...
+Use can also use this approach to bind many values using `(-> ??var predicate)`, the next example combines a few ideas, 
+using an inline function definition as a predicate:
 
+```clojure
 (mlet ['(start (-> ??x #(= (count %) 3)) ??rest end) '(start a b c d e end)]
   (? x))
-→ (a b c)
+; → (a b c)
+```
 
-This facility allows the matcher to be used as a reconstructive parser - a parser which returns some constructed result on successful parsing (an example of this is provided in the examples section).
+This facility allows the matcher to be used as a reconstructive parser - a parser which returns some constructed result 
+on successful parsing (an example of this is provided in the examples section).
 
 
 
