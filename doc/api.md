@@ -320,7 +320,7 @@ If you need to search for key values you should specify the match using vectors 
 
 See also predicates in patterns.
 
-### `?`
+### The Semantics of `?`
 
 The expression `(? y)` retrieves the value of the match variable `y` from matcher (pseudo) namespace...
 
@@ -339,7 +339,7 @@ piece of data but does not retain the data it matches against:
 ; → (nil dog nil)
 ```
 
-### `:=>`
+### Being Explicit with `:=>`
 
 `mcond`, `defmatch` (and other forms) can optionally use additional symbols to make their rule-based structure more 
 explicit, we recommend using `:=>` for example:
