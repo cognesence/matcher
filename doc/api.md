@@ -15,14 +15,14 @@
 + [General Principles](#general-principles)
     - [Patterns](#patterns)
     - [Matcher Variables](#matcher-variables)
-+ Matcher Let
++ Binding
     - mlet
-+ Function Definition
-    - defmatch
-    - mfn
 + Matched Output
     - mout
     - ?
++ Function Definition
+    - defmatch
+    - mfn
 + Matcher Namespace
     - mvars
     - with-mvars
@@ -69,7 +69,7 @@ returns `nil`.
 
 Match variables are prefixed with a `?` (or `??` - see later), in the following example, the pattern `(?x ?y ?z)`
 matches the datum `(cat dog bat)` binding match variables `x`, `y`, `z` to `'cat`, `'dog`, `'bat` respectively and the
-expression `(? y)` in the body of mlet retrieves the value of the match variable `y` from matcher name space.
+expression `(? y)` in the body of mlet retrieves the value of the match variable `y` from matcher namespace.
 
 ```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat)]
@@ -318,52 +318,72 @@ If you need to search for key values you should specify the match using vectors 
 
 See also predicates in patterns.
 
-mlet
-mlet (matcher-let) is the most primitive form of matcher expression provided for general use is, it is structured as follows:
+## Binding
 
+### `mlet`
+
+`mlet` (`matcher-let`) is the most primitive form of matcher expression provided for general use is, it is structured as 
+follows:
+
+```clojure
 (mlet [ pattern data ]
-  ...body...
+  ; Body.
   )
+```
 
-mlet operates as follows: if the pattern matches the datum, binding (zero or more) matcher variables as part of the matching process then mlet evaluates its body in the context of these bindings. If the pattern and datum do not match, mlet returns nil.
+`mlet` operates as follows: if the pattern matches the datum, binding (zero or more) matcher variables as part of the 
+matching process then `mlet` evaluates its body in the context of these bindings. If the pattern and datum do not match, 
+`mlet` returns `nil`.
 
-In the following example, the pattern (?x ?y ?z) matches the datum (cat dog bat) binding match variables "x", "y", "z" to 'cat, 'dog, 'bat respectively and the expression (? y) in the body of mlet retrieves the value of the match variable "y" from (pseudo) matcher name space.
+In the following example, the pattern `(?x ?y ?z)` matches the datum `(cat dog bat)` binding match variables `x`, `y`, 
+`z` to `'cat`, `'dog`, `'bat` respectively and the expression `(? y)` in the body of mlet retrieves the value of the 
+match variable `y` from matcher (pseudo) namespace.
 
+```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat)]
   (? y))
-→ dog
+; → dog
+```
 
-mlet forms return nil if matches fail:
+`mlet` forms return `nil` if matches fail:
 
+```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat frog)]
     (mout '(a ?x a ?y and a ?z)))
-→ nil
+; → nil
+```
 
-Once bound a match variable cannot be implicitly re-bound so whilst the pattern (?x dog ?x) matches (cat dog cat) it will not match (cat dog bat) because this would result in an inconsistent/ambiguous binding for "x". This approach also holds true with nested matcher forms, so given the data (dog bat) the following expression will return (cat dog bat) but with data (rat bat) it will return 'inner-match-failed:
+Once bound a match variable cannot be implicitly re-bound so whilst the pattern `(?x dog ?x)` matches `(cat dog cat)` it 
+will not match `(cat dog bat)` because this would result in an inconsistent/ambiguous binding for `x`. This approach 
+also holds true with nested matcher forms, so given the data `(dog bat)` the following expression will return 
+`(cat dog bat)` but with data `(rat bat)` it will return `'inner-match-failed`:
 
+```clojure
 (defn foo [data]
   (mlet ['(?x ?y) '(cat dog)]
     (or (mlet ['(?y ?z) data]
           (mout '(?x ?y ?z)))
       'inner-match-failed)
     ))
+(foo '(dog bat)) ; → (cat dog bat)
+(foo '(rat bat)) ; → inner-match-failed
+```
 
-(foo '(dog bat)) → (cat dog bat)
-(foo '(rat bat)) → inner-match-failed
+Unbound matcher variables have `nil` values as does the anonymous match variable `?_` which will always match with a 
+piece of data but does not retain the data it matches against:
 
-
-Unbound matcher variables have nil values as does the anonymous match variable "?_" which will always match with a piece of data  but does not retain the data it matches against:
-
+```clojure
 (mlet ['(?_ ?x) '(cat dog)]
     (list (? _) (? x) (? y)))
-→ (nil dog nil)
+; → (nil dog nil)
+```
 
 
 
 
 
 ?
-The expression (? y) retrieves the value of the match variable "y" from (pseudo) matcher name space...
+The expression (? y) retrieves the value of the match variable "y" from matcher (pseudo) namespace...
 
 (mlet ['(?x ?y ?z) '(cat dog bat)]
   (? y))
@@ -518,9 +538,9 @@ This is the matcher equivalent of fn, which builds an anonymous defmatch form.
 
 
 mvars & with-mvars
-A pseudo matcher name space is maintained, this is not a Clojure name space but rather it is a map (called mvars) which associates named matcher variables with their values. mvars is a lexically bound Clojure symbol accessible within the body of all matcher expressions.
+A matcher (pseudo) namespace is maintained, this is not a Clojure namespace but rather it is a map (called mvars) which associates named matcher variables with their values. mvars is a lexically bound Clojure symbol accessible within the body of all matcher expressions.
 
-with-mvars provides a simple way to inject variables into matcher name space or shadow existing values. See the following example:
+with-mvars provides a simple way to inject variables into matcher namespace or shadow existing values. See the following example:
 
 (with-mvars {'a (+ 2 3), 'b (- 3 4)}
   (println mvars)
@@ -546,7 +566,7 @@ nil
 
 
 :it
-Note that the matcher adds the last datum that was match (called :it) and the last pattern :it was matched against into name space.
+Note that the matcher adds the last datum that was match (called :it) and the last pattern :it was matched against into namespace.
 
 While direct reference to mvars is generally unnecessary, it is useful for writing new macros and it allows the results of successful matching operations to be saved for later processing or passed to other functions in cases where the lexical scoping of matcher variables is found restrictive.
 
