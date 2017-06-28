@@ -310,7 +310,7 @@ See also predicates in patterns.
 
 ### The Semantics of `?`
 
-The expression `(? y)` retrieves the value of the match variable `y` from matcher (pseudo) namespace...
+The expression `(? y)` retrieves the value of the match variable `y` from matcher (pseudo) namespace:
 
 ```clojure
 (mlet ['(?x ?y ?z) '(cat dog bat)]
