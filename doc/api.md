@@ -46,8 +46,18 @@
 
 ## Getting Started
 
+This library is hosted on clojars. Get it by adding `org.clojars.cognesence/matcher` to your dependencies in your
+Leiningen `project.clj` file.
+
 ```
-TODO: Leiningen!
+(defproject com.example/myproject "1.0.0"
+  :description "My Leiningen project!"
+  :url "http://example.com/projects/myproject"
+  :license {:name "Eclipse Public License"
+            :url "http://www.eclipse.org/legal/epl-v10.html"}
+  :dependencies [[org.clojure/clojure "1.8.0"]
+               [org.clojars.cognesence/matcher "1.0.1"]])
+
 ```
 
 ## A Brief Tutorial
@@ -845,7 +855,7 @@ Now we can use the operators:
 ; => #{(place table) (at Sue table) (place bench) (at book table)}
 ```
 
-## Searching Sets of Tuples
+### Searching Sets of Tuples
 
 This example considers searching for objects in a set of tuples which describe the state of a micro-world. To put this 
 in context: we receive object descriptions (and other forms) from language processing subsystem so, for example, the 
