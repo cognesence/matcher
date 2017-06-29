@@ -4,7 +4,7 @@
 
 ### Introduction
 
-+ [Getting Started](#getting-started)
++ [Installation](#installation)
 + [A Brief Tutorial](#a-brief-tutorial)
     - [Switching and Specialisation](#switching-and-specialisation)
     - [Searching and Selection](#searching-and-selection)
@@ -44,7 +44,7 @@
     - [Writing Dispatchers](#writing-dispatchers)
     - [Specifying a Grammar](#specifyig-a-grammar)
 
-## Getting Started
+## Installation
 
 This library is hosted on clojars. Get it by adding `org.clojars.cognesence/matcher` to your dependencies in your
 Leiningen `project.clj` file.

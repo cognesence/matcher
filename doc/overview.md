@@ -4,12 +4,29 @@ more details refer to the user guide.
 
 ## Contents
 
+* [Installation](#installation)
 * [Getting Started](#getting-started)
   + [Switching and Specialisation](#switching-and-specialisation)
   + [Searching and Selection](#searching-and-selection)
   + [Iteration and Collection](#iteration-and-collection)
 * [Applying Rules](#applying-rules)
 * [Applying State-Changing Operators](#applying-state-changing-operators)
+
+## Installation
+
+This library is hosted on clojars. Get it by adding `org.clojars.cognesence/matcher` to your dependencies in your
+Leiningen `project.clj` file.
+
+```
+(defproject com.example/myproject "1.0.0"
+  :description "My Leiningen project!"
+  :url "http://example.com/projects/myproject"
+  :license {:name "Eclipse Public License"
+            :url "http://www.eclipse.org/legal/epl-v10.html"}
+  :dependencies [[org.clojure/clojure "1.8.0"]
+               [org.clojars.cognesence/matcher "1.0.1"]])
+
+```
 
 ## Getting Started
 
