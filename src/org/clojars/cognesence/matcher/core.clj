@@ -3,7 +3,7 @@
  org.clojars.cognesence.matcher.core)
 
 ;--------------------------------------
-; globals, etc
+; globals, etc.
 ;--------------------------------------
 
 ; matcher var pseudo name-space
